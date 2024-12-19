@@ -68,6 +68,7 @@ _build
 *.dylib
 *.so
 *.dll
+*.dll.a
 *.bts
 
 # Other
@@ -90,4 +91,3 @@ ROSCO_testing/testing
 
 # OpenFAST outputs
 outputs/
-
