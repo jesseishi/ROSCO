@@ -417,13 +417,17 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------------- IPC CONSTANTS -----------------------
-        CALL ParseAry(  FileLines,  'IPC_Vramp',        CntrPar%IPC_Vramp,          2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseInput(FileLines,  'IPC_SatMode',      CntrPar%IPC_SatMode,            accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseInput(FileLines,  'IPC_IntSat',       CntrPar%IPC_IntSat,             accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'IPC_KP',           CntrPar%IPC_KP,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'IPC_KI',           CntrPar%IPC_KI,             2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseAry(  FileLines,  'IPC_aziOffset',    CntrPar%IPC_aziOffset,      2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
-        CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'IPC_Vramp',                 CntrPar%IPC_Vramp,          2,     accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'IPC_SatMode',               CntrPar%IPC_SatMode,               accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'IPC_IntSat',                CntrPar%IPC_IntSat,                accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'IPC_KP',                    CntrPar%IPC_KP,             2,     accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'IPC_KI',                    CntrPar%IPC_KI,             2,     accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines, 'IPC_aziOffset',             CntrPar%IPC_aziOffset,      2,     accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'IPC_CornerFreqAct',         CntrPar%IPC_CornerFreqAct,         accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'dMdTheta',                  CntrPar%dMdTheta,                  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'IPC_OutputConstrainedMode', CntrPar%IPC_OutputConstrainedMode, accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'IPC_refload',               CntrPar%IPC_refload,               accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines, 'F_OriginalLoadEstFreq',     CntrPar%F_OriginalLoadEstFreq,     accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
@@ -1098,24 +1102,24 @@ CONTAINS
             ErrVar%ErrMsg  = 'IPC_SatMode must be 0, 1, 2, or 3.'
         ENDIF
 
-        IF (CntrPar%IPC_KI(1) < 0.0)  THEN
+        IF (CntrPar%IPC_KI(1) > 0.0)  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC_KI(1) must be zero or greater than zero.'
+            ErrVar%ErrMsg  = 'IPC_KI(1) must be zero or smaller than zero.'
         ENDIF
         
-        IF (CntrPar%IPC_KI(2) < 0.0)  THEN
+        IF (CntrPar%IPC_KI(2) > 0.0)  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC_KI(2) must be zero or greater than zero.'
+            ErrVar%ErrMsg  = 'IPC_KI(2) must be zero or smaller than zero.'
         ENDIF
 
-        IF (CntrPar%IPC_KI(1) < 0.0)  THEN
+        IF (CntrPar%IPC_KI(1) > 0.0)  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC_KP(1) must be zero or greater than zero.'
+            ErrVar%ErrMsg  = 'IPC_KP(1) must be zero or smaller than zero.'
         ENDIF
         
-        IF (CntrPar%IPC_KI(2) < 0.0)  THEN
+        IF (CntrPar%IPC_KI(2) > 0.0)  THEN
             ErrVar%aviFAIL = -1
-            ErrVar%ErrMsg  = 'IPC_KP(2) must be zero or greater than zero.'
+            ErrVar%ErrMsg  = 'IPC_KP(2) must be zero or smaller than zero.'
         ENDIF
 
         !------- VS TORQUE CONTROL ------------------------------------------------

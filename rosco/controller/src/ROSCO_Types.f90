@@ -32,6 +32,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi)                    :: F_FlHighPassFreq            ! Natural frequency of first-roder high-pass filter for nacelle fore-aft motion [rad/s].
     REAL(DbKi)                    :: F_YawErr                    ! Corner low pass filter corner frequency for yaw controller [rad/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: F_FlpCornerFreq             ! Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
+    REAL(DbKi)                    :: F_OriginalLoadEstFreq       ! Corner frequency (-3dB point) in the first order low pass filter for the original load estimate [rad/s]
     INTEGER(IntKi)                :: TRA_Mode                    ! Tower Fore-Aft control mode {0 - no fore-aft control, 1 - Tower fore-aft damping, 2 -Frequency exclusion zone, 3- Options 1 and 2}
     REAL(DbKi)                    :: TRA_ExclSpeed               ! Rotor speed for exclusion [LSS] [rad/s]
     REAL(DbKi)                    :: TRA_ExclBand                ! One-half of the total frequency exclusion band. Torque controller reference will be TRA_ExclFreq +/- TRA_ExlBand [rad/s]
@@ -48,6 +49,9 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KI                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_aziOffset               ! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
     REAL(DbKi)                    :: IPC_CornerFreqAct           ! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
+    REAL(DbKi)                    :: dMdTheta                    ! DC gain from pitch angle to root bending moment [TODO check unit]
+    INTEGER(IntKi)                :: IPC_OutputConstrainedMode   ! Output-constrained method for IPC {0 - off, 1 - l2-IPC, 2 - l-infty IPC}
+    REAL(DbKi)                    :: IPC_refload                 ! Reference load for IPC [TODO check unit]
     INTEGER(IntKi)                :: PC_ControlMode              ! Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}
     INTEGER(IntKi)                :: PC_GS_n                     ! Amount of gain-scheduling table entries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_angles                ! Gain-schedule table - pitch angles
@@ -308,11 +312,21 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: IPC_AxisTilt_2P             ! Integral of the direct axis, 2P
     REAL(DbKi)                    :: IPC_AxisYaw_2P              ! Integral of quadrature, 2P
     REAL(DbKi)                    :: axisTilt_1P                 ! Tilt moment, 1P
+    REAL(DbKi)                    :: axisTiltF_1P                ! Filtered tilt moment, 1P
     REAL(DbKi)                    :: axisYaw_1P                  ! Yaw moment, 1P
     REAL(DbKi)                    :: axisYawF_1P                 ! Filtered yaw moment, 1P
     REAL(DbKi)                    :: axisTilt_2P                 ! Tilt moment, 2P
     REAL(DbKi)                    :: axisYaw_2P                  ! Yaw moment, 2P
     REAL(DbKi)                    :: axisYawF_2P                 ! Filtered yaw moment, 2P
+    REAL(DbKi)                    :: axisTilt_1P_OL              ! Tilt moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: axisYaw_1P_OL               ! Yaw moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: axisTilt_1P_OLF             ! Filtered tilt moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: axisYaw_1P_OLF              ! Filtered yaw moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: M_r                         ! Radial moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: M_psi                       ! Tangential moment, 1P, open loop (original load)
+    REAL(DbKi)                    :: psi_r                       ! Estimated phase of the open loop (original load)
+    REAL(DbKi)                    :: momentError                 ! Target minus actual l2 moment
+    REAL(DbKi)                    :: theta_r                     ! IPC pitch angle magnitude
     REAL(DbKi)                    :: IPC_KI(2)                   ! Integral gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_KP(2)                   ! Proportional gain for IPC, after ramp [-]
     REAL(DbKi)                    :: IPC_IntSat                  ! Integrator saturation (maximum signal amplitude contrbution to pitch from IPC)

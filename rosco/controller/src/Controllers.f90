@@ -433,47 +433,48 @@ CONTAINS
     SUBROUTINE IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Individual pitch control subroutine
         !   - Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
-        !   - Includes yaw by IPC
+        !   - Can be configured as input-constrained (saturating the pitch signals) or output-constrained (bringing the loads to a
+        !     reference value).
+        !   - TODO: Add yaw by IPC back in using output-constrained IPC.
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        IMPLICIT NONE
         
-        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
-        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
-        TYPE(DebugVariables),       INTENT(INOUT)        :: DebugVar
-        TYPE(ErrorVariables),       INTENT(INOUT)        :: ErrVar
+        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+        TYPE(LocalVariables),    INTENT(INOUT) :: LocalVar
+        TYPE(ObjectInstances),   INTENT(INOUT) :: objInst
+        TYPE(DebugVariables),    INTENT(INOUT) :: DebugVar
+        TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
 
         ! Local variables
-        REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
-        INTEGER(IntKi)              :: i, K                                    ! Integer used to loop through gains and turbine blades
-        REAL(DbKi)                  :: axisYawIPC_1P                           ! IPC contribution with yaw-by-IPC component
-        REAL(DbKi)                  :: Y_MErr, Y_MErrF, Y_MErrF_IPC            ! Unfiltered and filtered yaw alignment error [rad]
-        
-        CHARACTER(*),               PARAMETER           :: RoutineName = 'IPC'
+        REAL(DbKi)     :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)  ! IPC pitch commands for the three blades: raw, filtered, 1P contribution, and 2P contribution
+        INTEGER(IntKi) :: i, K                                                           ! Integer used to loop through gains and turbine blades
+        ! REAL(DbKi)     :: axisYawIPC_1P                                                  ! IPC contribution with yaw-by-IPC component
+        ! REAL(DbKi)     :: Y_MErr, Y_MErrF, Y_MErrF_IPC                                   ! Unfiltered and filtered yaw alignment error [rad]
+        REAL(DbKi)     :: omega, betaNum, betaDen                                        ! Notch filter variables/parameters
+
+        CHARACTER(*), PARAMETER :: RoutineName = 'IPC'
 
         ! Body
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
-        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, LocalVar%axisTilt_1P, LocalVar%axisYaw_1P)
-        CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_2, LocalVar%axisTilt_2P, LocalVar%axisYaw_2P)
+        ! TODO: Here we use the filtered root bending moment. This filtered version only has the 1P component, is that how we want
+        ! it to be? This would not work for 2P IPC right?
+        ! CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_1, LocalVar%axisTilt_1P, LocalVar%axisYaw_1P)
+        ! CALL ColemanTransform(LocalVar%rootMOOPF, LocalVar%Azimuth, NP_2, LocalVar%axisTilt_2P, LocalVar%axisYaw_2P)
+        CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, NP_1, LocalVar%axisTilt_1P, LocalVar%axisYaw_1P)
+        CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, NP_2, LocalVar%axisTilt_2P, LocalVar%axisYaw_2P)
 
-        ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
-        IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErr = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
-            Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
-        ELSE
-            LocalVar%axisYawF_1P = LocalVar%axisYaw_1P
-            Y_MErrF = 0.0
-            Y_MErrF_IPC = 0.0
-        END IF
+        ! Filter the tilt and yaw moment signals with a 3P notch filter.
+        ! TODO: make these in CntrPar.
+        ! TODO: Or remove because we've prefiltered the RootMOOP already.
+        omega = 3*LocalVar%RotSpeedF
+        betaNum = 0.001_DbKi
+        betaDen = 0.1_DbKi
+        LocalVar%axisTiltF_1P = NotchFilter(LocalVar%axisTilt_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+        LocalVar%axisYawF_1P = NotchFilter(LocalVar%axisYaw_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
 
-        ! Soft cutin with sigma function 
-        DO i = 1,2
-            LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
-            LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
-        END DO
-
-        ! Handle saturation limit, depends on IPC_SatMode
+        ! Input-constrained IPC: Define pitch saturation limit, depends on IPC_SatMode
+        ! TODO: Check if this is still consistent with the input file's description of these different functions.
         IF (CntrPar%IPC_SatMode == 2) THEN
             ! Saturate to min allowed pitch angle, softly using IPC_IntSat
             LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - CntrPar%PC_MinPit)
@@ -483,28 +484,105 @@ CONTAINS
         ELSE
             LocalVar%IPC_IntSat = CntrPar%IPC_IntSat
         ENDIF
-        
-        ! Integrate the signal and multiply with the IPC gain
-        IF (CntrPar%IPC_ControlMode >= 1 .AND. CntrPar%Y_ControlMode /= 2)  THEN
-            LocalVar%IPC_axisTilt_1P = PIController(LocalVar%axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            LocalVar%IPC_axisYaw_1P = PIController(LocalVar%axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            
-            IF (CntrPar%IPC_ControlMode >= 2) THEN
-                LocalVar%IPC_axisTilt_2P = PIController(LocalVar%axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-                LocalVar%IPC_axisYaw_2P = PIController(LocalVar%axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
-            END IF
-        ELSE
-            LocalVar%IPC_axisTilt_1P = 0.0
-            LocalVar%IPC_axisYaw_1P = 0.0
-            LocalVar%IPC_axisTilt_2P = 0.0
-            LocalVar%IPC_axisYaw_2P = 0.0
+
+        ! Output-constrained IPC: Define reference load.
+        ! If the reference load is nonzero, we need to estimate the 'original load' (i.e., the load without IPC) to avoid load
+        ! amplification and know whether to use a positive or negative reference.
+        ! The partial derivative from pitch angle to blade root moment is identical for the tilt and yaw axes, so we can use
+        ! dMdTheta.
+        LocalVar%axisTilt_1P_OL = LocalVar%axisTiltF_1P - CntrPar%dMdTheta * LocalVar%IPC_AxisTilt_1P
+        LocalVar%axisYaw_1P_OL = LocalVar%axisYawF_1P - CntrPar%dMdTheta * LocalVar%IPC_AxisYaw_1P
+
+        LocalVar%axisTilt_1P_OLF = LPFilter(LocalVar%axisTilt_1P_OL, LocalVar%DT, CntrPar%F_OriginalLoadEstFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+        LocalVar%axisYaw_1P_OLF = LPFilter(LocalVar%axisYaw_1P_OL, LocalVar%DT, CntrPar%F_OriginalLoadEstFreq, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+
+        ! TODO: Add 2P IPC
+        IF (CntrPar%IPC_OutputConstrainedMode == 0) THEN
+            ! Use no output-constrained IPC.
+            ! TODO.
+
+        ELSEIF (CntrPar%IPC_OutputConstrainedMode == 1) THEN
+            ! TODO: update citation.
+            ! Use the l-2 IPC method, see Hummel et al. (2025)
+            ! The location of the original load determines the rotation angle with which the tilt-yaw vector is rotated.
+            LocalVar%psi_r = atan2(LocalVar%axisTilt_1P_OLF, LocalVar%axisYaw_1P_OLF)
+            ! TODO: Add explanation of reference frames. It all gets a bit convoluted because the frames are left-handed.
+            CALL rotate2(LocalVar%axisTiltF_1P, LocalVar%axisYawF_1P, LocalVar%psi_r, LocalVar%M_psi, LocalVar%M_r)
+
+            ! We only use M_r which is the magnitude of the original load (in steady-state). To avoid amplification, the lower
+            ! saturation limit is set to 0.
+            ! TODO: remove. Temporary: switch on at a certain time.
+            IF (LocalVar%Time > 50.0_DbKi) THEN
+            Localvar%momentError = CntrPar%IPC_RefLoad - LocalVar%M_r
+            ELSE
+                Localvar%momentError = 0.0_DbKi
+            ENDIF
+            LocalVar%theta_r = PIController(LocalVar%momentError, CntrPar%IPC_KP(1), CntrPar%IPC_KI(1), 0.0_DbKi, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+
+            ! From our temporary original-load-frame, we rotate the control action back to the tilt-yaw frame. Here too, there is no
+            ! control action in the psi-direction.
+            CALL rotate2(0.0_DbKi, LocalVar%theta_r, -LocalVar%psi_r, LocalVar%IPC_axisTilt_1P, LocalVar%IPC_axisYaw_1P)
+
+        ELSEIF (CntrPar%IPC_OutputConstrainedMode == 2) THEN
+            ! TODO: update citation.
+            ! Use the l-infty IPC method, see Hummel et al. (2025)
+            ! Use the sign of the original tilt and yaw moment for the tilt and yaw reference loads.
+            ! RefTilt = sign(CntrPar%IPC_RefLoad, MT_O)
+            ! RefYaw = sign(CntrPar%IPC_RefLoad, MY_O)
+
+            ! Saturate the controller such that it can only reduce the loads.
         ENDIF
+
+
+        ! ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
+        ! IF (CntrPar%Y_ControlMode == 2) THEN
+        !     Y_MErr = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
+        !     Y_MErrF = LPFilter(Y_MErr, LocalVar%DT, CntrPar%F_YawErr, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instSecLPF)
+        !     Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP, CntrPar%Y_IPC_KI, -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        ! ELSE
+        !     LocalVar%axisYawF_1P = LocalVar%axisYaw_1P
+        !     Y_MErrF = 0.0
+        !     Y_MErrF_IPC = 0.0
+        ! END IF
+
+        ! ! Soft cutin with sigma function 
+        ! DO i = 1,2
+        !     LocalVar%IPC_KP(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KP(i), ErrVar)
+        !     LocalVar%IPC_KI(i) = sigma(LocalVar%WE_Vw, CntrPar%IPC_Vramp(1), CntrPar%IPC_Vramp(2), 0.0_DbKi, CntrPar%IPC_KI(i), ErrVar)
+        ! END DO
+
+        ! ! Handle saturation limit, depends on IPC_SatMode
+        ! IF (CntrPar%IPC_SatMode == 2) THEN
+        !     ! Saturate to min allowed pitch angle, softly using IPC_IntSat
+        !     LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - CntrPar%PC_MinPit)
+        ! ELSEIF (CntrPar%IPC_SatMode == 3) THEN
+        !     ! Saturate to peak shaving, softly using IPC_IntSat
+        !     LocalVar%IPC_IntSat = min(CntrPar%IPC_IntSat,LocalVar%BlPitchCMeas - LocalVar%PC_MinPit)
+        ! ELSE
+        !     LocalVar%IPC_IntSat = CntrPar%IPC_IntSat
+        ! ENDIF
         
-        ! Add the yaw-by-IPC contribution
-        axisYawIPC_1P = LocalVar%IPC_axisYaw_1P + Y_MErrF_IPC
+        ! ! Integrate the signal and multiply with the IPC gain
+        ! IF (CntrPar%IPC_ControlMode >= 1 .AND. CntrPar%Y_ControlMode /= 2)  THEN
+        !     LocalVar%IPC_axisTilt_1P = PIController(LocalVar%axisTilt_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+        !     LocalVar%IPC_axisYaw_1P = PIController(LocalVar%axisYawF_1P, LocalVar%IPC_KP(1), LocalVar%IPC_KI(1), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+            
+        !     IF (CntrPar%IPC_ControlMode >= 2) THEN
+        !         LocalVar%IPC_axisTilt_2P = PIController(LocalVar%axisTilt_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+        !         LocalVar%IPC_axisYaw_2P = PIController(LocalVar%axisYawF_2P, LocalVar%IPC_KP(2), LocalVar%IPC_KI(2), -LocalVar%IPC_IntSat, LocalVar%IPC_IntSat, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI) 
+        !     END IF
+        ! ELSE
+        !     LocalVar%IPC_axisTilt_1P = 0.0
+        !     LocalVar%IPC_axisYaw_1P = 0.0
+        !     LocalVar%IPC_axisTilt_2P = 0.0
+        !     LocalVar%IPC_axisYaw_2P = 0.0
+        ! ENDIF
+        
+        ! ! Add the yaw-by-IPC contribution
+        ! axisYawIPC_1P = LocalVar%IPC_axisYaw_1P + Y_MErrF_IPC
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, axisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_1P, LocalVar%IPC_AxisYaw_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
         CALL ColemanTransformInverse(LocalVar%IPC_axisTilt_2P, LocalVar%IPC_axisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type

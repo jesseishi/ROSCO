@@ -25,6 +25,7 @@
 !       PIDController: implement a PID controller
 !       ratelimit: Rate limit signal
 !       saturate: Saturate signal
+!       rotate2: Rotate 2x1 vector
 
 MODULE Functions
 
@@ -701,6 +702,25 @@ CONTAINS
         ! write(401,*) y
         
     END FUNCTION unwrap
+
+
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE rotate2(x, y, theta, x_r, y_r)
+    ! Rotate a 2D vector (x, y) counter-clockwise with angle theta to get (x_r, y_r).
+
+        IMPLICIT NONE
+    
+        ! Inputs
+        REAL(DbKi), INTENT(IN)  :: x, y
+        REAL(DbKi), INTENT(IN)  :: theta
+        ! Outputs
+        REAL(DbKi), INTENT(OUT) :: x_r, y_r
+    
+        ! Do the transformation.
+        x_r = x * cos(theta) - y * sin(theta)
+        y_r = x * sin(theta) + y * cos(theta)
+    
+    END SUBROUTINE rotate2
 
 
 !-------------------------------------------------------------------------------------------------------------------------------

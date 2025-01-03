@@ -158,6 +158,9 @@ ControlParameters:
       <<: *real
       description: Corner frequency (-3dB point) in the second order low pass filter of the blade root bending moment for flap control [rad/s].
       allocatable: True
+    F_OriginalLoadEstFreq:
+      <<: *real
+      description: Corner frequency (-3dB point) in the first order low pass filter for the original load estimate [rad/s]
     
     # Tower fore-aft damping
     TRA_Mode:
@@ -214,6 +217,15 @@ ControlParameters:
     IPC_CornerFreqAct:
       <<: *real
       description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
+    dMdTheta:
+      <<: *real
+      description: DC gain from pitch angle to root bending moment [TODO check unit]
+    IPC_OutputConstrainedMode:
+      <<: *integer
+      description: Output-constrained method for IPC {0 - off, 1 - l2-IPC, 2 - l-infty IPC}
+    IPC_refload:
+      <<: *real
+      description: Reference load for IPC [TODO check unit]
     
     # Collective Pitch Controller
     PC_ControlMode:
@@ -1102,41 +1114,71 @@ LocalVariables:
       description: Current speed error (pitch control) [rad/s].
     IPC_AxisTilt_1P:
       <<: *real
-      description: Integral of the direct axis, 1P
+      description: Integral of the tilt axis, 1P [rad]
     IPC_AxisYaw_1P:
       <<: *real
-      description: Integral of quadrature, 1P
+      description: Integral of the yaw axis, 1P [rad]
     IPC_AxisTilt_2P:
       <<: *real
-      description: Integral of the direct axis, 2P
+      description: Integral of the tilt axis, 2P [rad]
     IPC_AxisYaw_2P:
       <<: *real
-      description: Integral of quadrature, 2P
+      description: Integral of the yaw axis, 2P [rad]
     axisTilt_1P:
       <<: *real
-      description: Tilt moment, 1P
+      description: Tilt moment, 1P [Nm]
+    axisTiltF_1P:
+      <<: *real
+      description: Filtered tilt moment, 1P [Nm]
     axisYaw_1P:
       <<: *real
-      description: Yaw moment, 1P
+      description: Yaw moment, 1P [Nm}]
     axisYawF_1P:
       <<: *real
-      description: Filtered yaw moment, 1P
+      description: Filtered yaw moment, 1P [Nm]
     axisTilt_2P:
       <<: *real
-      description: Tilt moment, 2P
+      description: Tilt moment, 2P [Nm]
     axisYaw_2P:
       <<: *real
-      description: Yaw moment, 2P
+      description: Yaw moment, 2P [Nm]
     axisYawF_2P:
       <<: *real
-      description: Filtered yaw moment, 2P
+      description: Filtered yaw moment, 2P [Nm]
+    axisTilt_1P_OL:
+      <<: *real
+      description: Tilt moment, 1P, open loop (original load) [Nm]
+    axisYaw_1P_OL:
+      <<: *real
+      description: Yaw moment, 1P, open loop (original load) [Nm]
+    axisTilt_1P_OLF:
+      <<: *real
+      description: Filtered tilt moment, 1P, open loop (original load) [Nm]
+    axisYaw_1P_OLF:
+      <<: *real
+      description: Filtered yaw moment, 1P, open loop (original load) [Nm]
+    M_r:
+      <<: *real
+      description: Radial moment, 1P, open loop (original load) [Nm]
+    M_psi:
+      <<: *real
+      description: Tangential moment, 1P, open loop (original load) [Nm]
+    psi_r:
+      <<: *real
+      description: Estimated phase of the open loop (original load) [rad]
+    momentError:
+      <<: *real
+      description: Target minus actual l2 moment [Nm]
+    theta_r:
+      <<: *real
+      description: IPC pitch angle magnitude [rad]
     IPC_KI:
       <<: *real
-      description: Integral gain for IPC, after ramp [-]
+      description: Integral gain for IPC, after ramp [rad/Nms]
       size: 2
     IPC_KP:
       <<: *real
-      description: Proportional gain for IPC, after ramp [-]
+      description: Proportional gain for IPC, after ramp [rad/Nm]
       size: 2
     IPC_IntSat:
       <<: *real

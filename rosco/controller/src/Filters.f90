@@ -399,6 +399,7 @@ CONTAINS
         DO K = 1,LocalVar%NumBl
             IF ((CntrPar%IPC_ControlMode > 0) .OR. (CntrPar%Flp_Mode == 3)) THEN
                 ! Moving inverted notch at rotor speed to isolate 1P
+                ! TODO: What if we want to do 2P IPC?
                 LocalVar%RootMOOPF(K) = NotchFilterSlopes(LocalVar%rootMOOP(K), LocalVar%DT, LocalVar%RotSpeedF, 0.7_DbKi, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotchSlopes, .TRUE.)
             ELSEIF ( CntrPar%Flp_Mode == 2 ) THEN
                 ! Filter Blade root bending moments
