@@ -79,6 +79,10 @@ CONTAINS
             LocalVar%PtfmRAY            = avrSWAP(1017)
             LocalVar%PtfmRAZ            = avrSWAP(1018)
 
+            LocalVar%TipDxc1        = avrSWAP(1020) ! Tip displacement Blade 1 (m) 
+            LocalVar%TipDxc2        = avrSWAP(1021) ! Tip displacement Blade 2 (m)
+            LocalVar%TipDxc3        = avrSWAP(1022) ! Tip displacement Blade 3 (m)
+
         ENDIF
 
 

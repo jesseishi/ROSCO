@@ -428,6 +428,9 @@ TYPE, PUBLIC :: LocalVariables
     REAL(DbKi)                    :: PtfmRAX                     ! Platform motion -- Acceleration RAX (rad/s^2)')
     REAL(DbKi)                    :: PtfmRAY                     ! Platform motion -- Acceleration RAY (rad/s^2)')
     REAL(DbKi)                    :: PtfmRAZ                     ! Platform motion -- Acceleration RAZ (rad/s^2)')
+    REAL(DbKi)                    :: TipDxc1                     ! Tip deflection in the x-direction of blade 1 (m)
+    REAL(DbKi)                    :: TipDxc2                     ! Tip deflection in the x-direction of blade 1 (m)
+    REAL(DbKi)                    :: TipDxc3                     ! Tip deflection in the x-direction of blade 1 (m)
     REAL(DbKi)                    :: CC_DesiredL(12)             ! None
     REAL(DbKi)                    :: CC_ActuatedL(12)            ! None
     REAL(DbKi)                    :: CC_ActuatedDL(12)           ! None

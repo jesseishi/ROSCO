@@ -193,6 +193,9 @@ SUBROUTINE WriteRestartFile(LocalVar, CntrPar, ErrVar, objInst, RootName, size_a
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PtfmRAX
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PtfmRAY
         WRITE( Un, IOSTAT=ErrStat) LocalVar%PtfmRAZ
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%TipDxc1
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%TipDxc2
+        WRITE( Un, IOSTAT=ErrStat) LocalVar%TipDxc3
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(1)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(2)
         WRITE( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(3)
@@ -522,6 +525,9 @@ SUBROUTINE ReadRestartFile(avrSWAP, LocalVar, CntrPar, objInst, PerfData, RootNa
         READ( Un, IOSTAT=ErrStat) LocalVar%PtfmRAX
         READ( Un, IOSTAT=ErrStat) LocalVar%PtfmRAY
         READ( Un, IOSTAT=ErrStat) LocalVar%PtfmRAZ
+        READ( Un, IOSTAT=ErrStat) LocalVar%TipDxc1
+        READ( Un, IOSTAT=ErrStat) LocalVar%TipDxc2
+        READ( Un, IOSTAT=ErrStat) LocalVar%TipDxc3
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(1)
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(2)
         READ( Un, IOSTAT=ErrStat) LocalVar%CC_DesiredL(3)
@@ -701,7 +707,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
 
     REAL(DbKi), ALLOCATABLE         :: DebugOutData(:)
  
-    CHARACTER(15), DIMENSION(150)      :: LocalVarOutStrings
+    CHARACTER(15), DIMENSION(153)      :: LocalVarOutStrings
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
     nDebugOuts = 26
@@ -746,7 +752,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]', '[rad/s]', & 
                                       '[rad/s]']
-    nLocalVars = 150
+    nLocalVars = 153
     Allocate(LocalVarOutData(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus
     LocalVarOutData(2) = LocalVar%AlreadyInitialized
@@ -883,21 +889,24 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutData(133) = LocalVar%PtfmRAX
     LocalVarOutData(134) = LocalVar%PtfmRAY
     LocalVarOutData(135) = LocalVar%PtfmRAZ
-    LocalVarOutData(136) = LocalVar%CC_DesiredL(1)
-    LocalVarOutData(137) = LocalVar%CC_ActuatedL(1)
-    LocalVarOutData(138) = LocalVar%CC_ActuatedDL(1)
-    LocalVarOutData(139) = LocalVar%StC_Input(1)
-    LocalVarOutData(140) = LocalVar%Flp_Angle(1)
-    LocalVarOutData(141) = LocalVar%RootMyb_Last(1)
-    LocalVarOutData(142) = LocalVar%ACC_INFILE_SIZE
-    LocalVarOutData(143) = LocalVar%AWC_complexangle(1)
-    LocalVarOutData(144) = LocalVar%ZMQ_ID
-    LocalVarOutData(145) = LocalVar%ZMQ_YawOffset
-    LocalVarOutData(146) = LocalVar%ZMQ_TorqueOffset
-    LocalVarOutData(147) = LocalVar%ZMQ_PitOffset(1)
-    LocalVarOutData(148) = LocalVar%ZMQ_R_Speed
-    LocalVarOutData(149) = LocalVar%ZMQ_R_Torque
-    LocalVarOutData(150) = LocalVar%ZMQ_R_Pitch
+    LocalVarOutData(136) = LocalVar%TipDxc1
+    LocalVarOutData(137) = LocalVar%TipDxc2
+    LocalVarOutData(138) = LocalVar%TipDxc3
+    LocalVarOutData(139) = LocalVar%CC_DesiredL(1)
+    LocalVarOutData(140) = LocalVar%CC_ActuatedL(1)
+    LocalVarOutData(141) = LocalVar%CC_ActuatedDL(1)
+    LocalVarOutData(142) = LocalVar%StC_Input(1)
+    LocalVarOutData(143) = LocalVar%Flp_Angle(1)
+    LocalVarOutData(144) = LocalVar%RootMyb_Last(1)
+    LocalVarOutData(145) = LocalVar%ACC_INFILE_SIZE
+    LocalVarOutData(146) = LocalVar%AWC_complexangle(1)
+    LocalVarOutData(147) = LocalVar%ZMQ_ID
+    LocalVarOutData(148) = LocalVar%ZMQ_YawOffset
+    LocalVarOutData(149) = LocalVar%ZMQ_TorqueOffset
+    LocalVarOutData(150) = LocalVar%ZMQ_PitOffset(1)
+    LocalVarOutData(151) = LocalVar%ZMQ_R_Speed
+    LocalVarOutData(152) = LocalVar%ZMQ_R_Torque
+    LocalVarOutData(153) = LocalVar%ZMQ_R_Pitch
 
     LocalVarOutStrings(1) = 'iStatus'
     LocalVarOutStrings(2) = 'AlreadyInitialized'
@@ -1034,21 +1043,24 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     LocalVarOutStrings(133) = 'PtfmRAX'
     LocalVarOutStrings(134) = 'PtfmRAY'
     LocalVarOutStrings(135) = 'PtfmRAZ'
-    LocalVarOutStrings(136) = 'CC_DesiredL'
-    LocalVarOutStrings(137) = 'CC_ActuatedL'
-    LocalVarOutStrings(138) = 'CC_ActuatedDL'
-    LocalVarOutStrings(139) = 'StC_Input'
-    LocalVarOutStrings(140) = 'Flp_Angle'
-    LocalVarOutStrings(141) = 'RootMyb_Last'
-    LocalVarOutStrings(142) = 'ACC_INFILE_SIZE'
-    LocalVarOutStrings(143) = 'AWC_complexangle'
-    LocalVarOutStrings(144) = 'ZMQ_ID'
-    LocalVarOutStrings(145) = 'ZMQ_YawOffset'
-    LocalVarOutStrings(146) = 'ZMQ_TorqueOffset'
-    LocalVarOutStrings(147) = 'ZMQ_PitOffset'
-    LocalVarOutStrings(148) = 'ZMQ_R_Speed'
-    LocalVarOutStrings(149) = 'ZMQ_R_Torque'
-    LocalVarOutStrings(150) = 'ZMQ_R_Pitch'
+    LocalVarOutStrings(136) = 'TipDxc1'
+    LocalVarOutStrings(137) = 'TipDxc2'
+    LocalVarOutStrings(138) = 'TipDxc3'
+    LocalVarOutStrings(139) = 'CC_DesiredL'
+    LocalVarOutStrings(140) = 'CC_ActuatedL'
+    LocalVarOutStrings(141) = 'CC_ActuatedDL'
+    LocalVarOutStrings(142) = 'StC_Input'
+    LocalVarOutStrings(143) = 'Flp_Angle'
+    LocalVarOutStrings(144) = 'RootMyb_Last'
+    LocalVarOutStrings(145) = 'ACC_INFILE_SIZE'
+    LocalVarOutStrings(146) = 'AWC_complexangle'
+    LocalVarOutStrings(147) = 'ZMQ_ID'
+    LocalVarOutStrings(148) = 'ZMQ_YawOffset'
+    LocalVarOutStrings(149) = 'ZMQ_TorqueOffset'
+    LocalVarOutStrings(150) = 'ZMQ_PitOffset'
+    LocalVarOutStrings(151) = 'ZMQ_R_Speed'
+    LocalVarOutStrings(152) = 'ZMQ_R_Torque'
+    LocalVarOutStrings(153) = 'ZMQ_R_Pitch'
     ! Initialize debug file
     IF ((LocalVar%iStatus == 0) .OR. (LocalVar%iStatus == -9))  THEN ! .TRUE. if we're on the first call to the DLL
         IF (CntrPar%LoggingLevel > 0) THEN
@@ -1063,8 +1075,8 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             CALL GetNewUnit(UnDb2, ErrVar)
             OPEN(unit=UnDb2, FILE=TRIM(RootName)//'.RO.dbg2')
             WRITE(UnDb2, *)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
-            WRITE(UnDb2, '(151(a20,TR5:))') 'Time',   LocalVarOutStrings
-            WRITE(UnDb2, '(151(a20,TR5:))')
+            WRITE(UnDb2, '(154(a20,TR5:))') 'Time',   LocalVarOutStrings
+            WRITE(UnDb2, '(154(a20,TR5:))')
         END IF
 
         IF (CntrPar%LoggingLevel > 2) THEN
@@ -1073,6 +1085,17 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
             DO Ind = 1, avrBaseLength
                 avrIndices(Ind) = Ind
             END DO
+
+        ! Extended signal inputs
+        IF (CntrPar%Ext_Interface > 0) THEN 
+            DO Ind = 1001, 1018
+                Call AddToList(avrIndices, Ind)
+            END DO
+
+            DO Ind = 1020, 1022
+                Call AddToList(avrIndices, Ind)
+            END DO
+        ENDIF
 
             ! Cable control indices
             IF (CntrPar%CC_Mode > 0) THEN
@@ -1127,7 +1150,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     END DO
     
     ! Write debug files
-    FmtDat = "(F20.5,TR5,150(ES20.5E2,TR5:))"   ! The format of the debugging data
+    FmtDat = "(F20.5,TR5,153(ES20.5E2,TR5:))"   ! The format of the debugging data
     IF ( MOD(LocalVar%n_DT, CntrPar%n_DT_Out) == 0) THEN
         IF((CntrPar%LoggingLevel > 0) .AND. (LocalVar%iStatus .ge. 0)) THEN
             WRITE (UnDb, TRIM(FmtDat))  LocalVar%Time, DebugOutData

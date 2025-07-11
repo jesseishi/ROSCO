@@ -1483,6 +1483,15 @@ LocalVariables:
     PtfmRAZ:
       <<: *real
       description: Platform motion -- Acceleration RAZ (rad/s^2)')
+    TipDxc1:
+      <<: *real
+      description: Tip deflection in the x-direction of blade 1 (m)
+    TipDxc2:
+      <<: *real
+      description: Tip deflection in the x-direction of blade 1 (m)
+    TipDxc3:
+      <<: *real
+      description: Tip deflection in the x-direction of blade 1 (m)
     CC_DesiredL:
       <<: *real
       size: 12
