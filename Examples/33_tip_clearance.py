@@ -22,7 +22,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 example_out_dir = os.path.join(this_dir, "examples_out")
 os.makedirs(example_out_dir, exist_ok=True)
 
-FULL_TEST = False
+FULL_TEST = True
 
 
 def main():
@@ -34,9 +34,6 @@ def main():
     controller_params["DISCON"] = {}
     controller_params["DISCON"]["Echo"] = 1
     controller_params["LoggingLevel"] = 3
-    
-    # Set startup mode, defaults in toolbox_schema.yaml (can be edited below)
-    controller_params["SU_Mode"] = 1
 
 
     # simulation set up
@@ -58,7 +55,7 @@ def main():
     r.wind_case_fcn = cl.power_curve
     r.wind_case_opts = {
         "U": [12],
-        "TMax": 20,
+        "TMax": 100,
     }
     if not FULL_TEST:
         r.wind_case_opts["TMax"] = 2
