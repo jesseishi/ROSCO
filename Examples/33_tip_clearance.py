@@ -52,7 +52,7 @@ def main():
     run_dir = os.path.join(example_out_dir, "33_tip_clearance/0_setup_sim")
 
     # Wind case (steady)
-    r.wind_case_fcn = cl.power_curve
+    r.wind_case_fcn = cl.power_curve  # type: ignore
     r.wind_case_opts = {
         "U": [12],
         "TMax": 100,
@@ -65,23 +65,24 @@ def main():
     os.makedirs(run_dir, exist_ok=True)
     r.controller_params = controller_params
     r.save_dir = run_dir
-    r.openfast_exe = '/Users/dzalkind/Tools/openfast-mc/build/glue-codes/openfast/openfast'   # path do compiled OpenFAST executable
+    # r.openfast_exe = '/Users/dzalkind/Tools/openfast-mc/build/glue-codes/openfast/openfast'   # path do compiled OpenFAST executable
+    r.openfast_exe = os.path.join(this_dir, "../..", "OpenFAST/install/bin/openfast")
     r.run_FAST()
 
     # Plot output
-    # outfile0 = [os.path.join(run_dir, "IEA15MW_0.outb")]
+    outfile0 = [os.path.join(run_dir, "IEA15MW_0.outb")]
     # outfile1 = [os.path.join(run_dir, "IEA15MW_1.outb")]
-    # cases = {}
-    # cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
-    # fast_out = output_processing.output_processing()
+    cases = {}
+    cases["Baseline"] = ["Wind1VelX", "BldPitch1", "GenTq", "RotSpeed", "GenPwr"]
+    fast_out = output_processing.output_processing()
     
-    # fast_out.load_fast_out(outfile0)
-    # fast_out.plot_fast_out(cases=cases, showplot=False)
+    fast_out.load_fast_out(outfile0)
+    fast_out.plot_fast_out(cases=cases, showplot=False)
 
     # fast_out.load_fast_out(outfile1)
     # fast_out.plot_fast_out(cases=cases, showplot=False)
 
-    # plt.savefig(os.path.join(example_out_dir, "32_startup.png"))
+    plt.savefig(os.path.join(example_out_dir, "32_startup.png"))
 
 
 if __name__ == "__main__":
