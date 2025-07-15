@@ -69,11 +69,13 @@ CONTAINS
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
 
         ! Find individual pitch control contribution
-        IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
-            CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-        ELSE
-            LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
-        END IF
+        ! IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        !     CALL IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        ! ELSE
+        !     LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
+        ! END IF
+        ! Run tower clearance IPC. For now always, but we should make a flag for this.
+        CALL IPCMBCTowerClearance(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         
         ! Include tower fore-aft tower vibration damping control
         IF (CntrPar%TD_Mode > 0) THEN
@@ -109,16 +111,16 @@ CONTAINS
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch saturation limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
             
-            ! Hard IPC saturation by peak shaving limit
-            IF (CntrPar%IPC_SatMode == 1) THEN
-                LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
-            END IF
+            ! ! Hard IPC saturation by peak shaving limit
+            ! IF (CntrPar%IPC_SatMode == 1) THEN
+            !     LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
+            ! END IF
             
             ! Add ZeroMQ pitch commands
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%ZMQ_PitOffset(K)
 
             ! Rate limit                  
-            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+            ! LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
         END DO 
 
         ! Open Loop control, use if
@@ -173,13 +175,13 @@ CONTAINS
             ENDIF
         END DO
 
-        ! Hardware saturation: using CntrPar%PC_MinPit
-        DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            ! Saturate the pitch command using the overall (hardware) limit
-            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
-            ! Saturate the overall command of blade K using the pitch rate limit
-            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
-        END DO
+        ! ! Hardware saturation: using CntrPar%PC_MinPit
+        ! DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
+        !     ! Saturate the pitch command using the overall (hardware) limit
+        !     LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
+        !     ! Saturate the overall command of blade K using the pitch rate limit
+        !     LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+        ! END DO
 
         ! Add pitch actuator fault for blade K
         IF (CntrPar%PF_Mode == 1) THEN
@@ -585,6 +587,89 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE IPC
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE IPCMBCTowerClearance(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        ! Individual pitch control for added tower clearance subroutine using the multiblade coordinate transformation.
+
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        IMPLICIT NONE
+        
+        TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar
+        TYPE(LocalVariables),       INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances),      INTENT(INOUT)       :: objInst
+        TYPE(DebugVariables),       INTENT(INOUT)       :: DebugVar
+        TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
+
+        ! Local variables
+        REAL(DbKi)                  :: TipDxc(3)
+        REAL(DbKi)                  :: omega
+        REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3)
+        REAL(DbKi)                  :: TipDxcTiltError_1P
+        INTEGER(IntKi)              :: K
+
+        ! TODO: Move these to the appropriate data structures.
+        REAL(DbKi)                  :: MaxTipDefl_1P
+        REAL(DbKi)                  :: TipDxcTiltRef_1P
+        REAL(DbKi)                  :: Kp, Ki
+        REAL(DbKi)                  :: betaNum, betaDen
+        REAL(DbKi)                  :: IPC_aziOffset
+
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'IPCTowerClearance'
+        
+        betaNum = 0.001_DbKi
+        betaDen = 0.1_DbKi
+        MaxTipDefl_1P = 5.0_DbKi
+        Kp = 0.0_DbKi
+        Ki = -0.0028_DbKi
+        IPC_aziOffset = 0.4891_DbKi
+
+        ! Body
+        ! Pass tip deflection signals through the Coleman transform to get the tilt and yaw tip deflection axis
+        TipDxc(1) = LocalVar%TipDxc1
+        TipDxc(2) = LocalVar%TipDxc2
+        TipDxc(3) = LocalVar%TipDxc3
+        CALL ColemanTransform3(TipDxc, LocalVar%Azimuth, NP_1, LocalVar%TipDxcCol_1P, LocalVar%TipDxcTilt_1P, LocalVar%TipDxcYaw_1P)
+
+        ! Filter the tilt and yaw signals with a varying 3P notch filter.
+        ! The yaw channel is not used here but is nice for debugging and analysis.
+        omega = 3*LocalVar%RotSpeedF
+        LocalVar%TipDxcColF_1P = NotchFilter(LocalVar%TipDxcCol_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+        LocalVar%TipDxcTiltF_1P = NotchFilter(LocalVar%TipDxcTilt_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+        LocalVar%TipDxcYawF_1P = NotchFilter(LocalVar%TipDxcYaw_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+
+        ! Define the tilt tower clearance reference.
+        LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcColF_1P - MaxTipDefl_1P
+
+        ! Define the error.
+        TipDxcTiltError_1P = LocalVar%TipDxcTiltRef_1P - LocalVar%TipDxcTiltF_1P
+
+        ! Control the error. The controller is saturated on (-inf, 0] so that it never decreases the tower clearance towards the reference.
+        ! We don't actually need to saturate to -inf, -Pi is more than enough.
+        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P, Kp, Ki, -3.1415_DbKi, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+
+        ! Pass the tilt axis through the inverse Coleman transform to get the commanded pitch angles
+        CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, 0.0_DbKi, LocalVar%Azimuth, NP_1, IPC_aziOffset, PitComIPC)
+
+        ! Sum nP IPC contributions and store to LocalVar data type
+        DO K = 1,LocalVar%NumBl
+           
+            ! Optionally filter the resulting signal to induce a phase delay
+            IF (CntrPar%IPC_CornerFreqAct > 0.0) THEN
+                PitComIPCF(K) = LPFilter(PitComIPC(K), LocalVar%DT, CntrPar%IPC_CornerFreqAct, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instLPF)
+            ELSE
+                PitComIPCF(K) = PitComIPC(K)
+            END IF
+            
+            LocalVar%IPC_PitComF(K) = PitComIPCF(K)
+        END DO
+
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
+    END SUBROUTINE IPCMBCTowerClearance
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch

@@ -49,13 +49,16 @@ def main():
     r.case_inputs[("ElastoDyn", "PtfmPDOF")] = {"vals": ["False"], "group": 0}
     r.case_inputs[("ElastoDyn", "PtfmYDOF")] = {"vals": ["False"], "group": 0}
 
+    # IPC has to be enabled in the bladed interface.
+    r.case_inputs[("ServoDyn", "Ptch_Cntrl")] = {"vals": ["1"], "group": 0}
+
     run_dir = os.path.join(example_out_dir, "33_tip_clearance/0_setup_sim")
 
     # Wind case (steady)
     r.wind_case_fcn = cl.power_curve  # type: ignore
     r.wind_case_opts = {
         "U": [12],
-        "TMax": 100,
+        "TMax": 300,
     }
     if not FULL_TEST:
         r.wind_case_opts["TMax"] = 2

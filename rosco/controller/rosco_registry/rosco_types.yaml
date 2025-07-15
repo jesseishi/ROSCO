@@ -1252,6 +1252,9 @@ LocalVariables:
     PC_SpdErr:                    
       <<: *real 
       description: Current speed error (pitch control) [rad/s].
+    IPCTip_AxisTilt_1P:
+      <<: *real
+      description: Integral of the tilt axis for tip deflection, 1P
     IPC_AxisTilt_1P:
       <<: *real
       description: Integral of the direct axis, 1P
@@ -1488,10 +1491,31 @@ LocalVariables:
       description: Tip deflection in the x-direction of blade 1 (m)
     TipDxc2:
       <<: *real
-      description: Tip deflection in the x-direction of blade 1 (m)
+      description: Tip deflection in the x-direction of blade 2 (m)
     TipDxc3:
       <<: *real
-      description: Tip deflection in the x-direction of blade 1 (m)
+      description: Tip deflection in the x-direction of blade 3 (m)
+    TipDxcCol_1P:
+      <<: *real
+      description: Tip deflection in the collective-direction, 1P (m)
+    TipDxcTilt_1P:
+      <<: *real
+      description: Tip deflection in the tilt-direction, 1P (m)
+    TipDxcYaw_1P:
+      <<: *real
+      description: Tip deflection in the yaw-direction, 1P (m)
+    TipDxcColF_1P:
+      <<: *real
+      description: Tip deflection in the collective-direction, 1P (m)
+    TipDxcTiltF_1P:
+      <<: *real
+      description: Filtered tip deflection in the tilt-direction, 1P (m)
+    TipDxcYawF_1P:
+      <<: *real
+      description: Filtered tip deflection in the yaw-direction, 1P (m)
+    TipDxcTiltRef_1P:
+      <<: *real
+      description: Reference tip deflection in the tilt-direction, 1P (m)
     CC_DesiredL:
       <<: *real
       size: 12

@@ -368,6 +368,25 @@ CONTAINS
         axYOut  = 2.0/3.0 * (sin(nHarmonic*(aziAngle))*rootMOOP(1) + sin(nHarmonic*(aziAngle+phi2))*rootMOOP(2) + sin(nHarmonic*(aziAngle+phi3))*rootMOOP(3))
         
     END SUBROUTINE ColemanTransform
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE ColemanTransform3(rootMOOP, aziAngle, nHarmonic, axCOut, axTOut, axYOut)
+    ! Extended Coleman transform returning direct, quadrature, and collective modes
+
+        IMPLICIT NONE
+        ! Inputs
+        REAL(DbKi), INTENT(IN)     :: rootMOOP(3)                      ! Root out of plane bending moments of each blade
+        REAL(DbKi), INTENT(IN)     :: aziAngle                         ! Rotor azimuth angle
+        INTEGER(IntKi), INTENT(IN) :: nHarmonic                        ! The harmonic number, nP
+        ! Outputs
+        REAL(DbKi), INTENT(OUT)    :: axCOut, axTOut, axYOut           ! Direct, quadrature, and collective axis outputs
+
+        ! Calculate the collective mode.
+        axCOut = (rootMOOP(1) + rootMOOP(2) + rootMOOP(3)) / 3.0
+
+        ! And get the other modes.
+        CALL ColemanTransform(rootMOOP, aziAngle, nHarmonic, axTOut, axYOut)
+
+    END SUBROUTINE ColemanTransform3
 
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ColemanTransformInverse(axTIn, axYIn, aziAngle, nHarmonic, aziOffset, PitComIPC)
