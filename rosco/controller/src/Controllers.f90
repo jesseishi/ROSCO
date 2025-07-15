@@ -613,15 +613,17 @@ CONTAINS
         REAL(DbKi)                  :: Kp, Ki
         REAL(DbKi)                  :: betaNum, betaDen
         REAL(DbKi)                  :: IPC_aziOffset
+        REAL(DbKi)                  :: MaxIPCAmplitude
 
-        CHARACTER(*),               PARAMETER           :: RoutineName = 'IPCTowerClearance'
-        
+        CHARACTER(*),               PARAMETER           :: RoutineName = 'IPCMBCTowerClearance'
+
         betaNum = 0.001_DbKi
         betaDen = 0.1_DbKi
         MaxTipDefl_1P = 5.0_DbKi
         Kp = 0.0_DbKi
         Ki = -0.0028_DbKi
         IPC_aziOffset = 0.4891_DbKi
+        MaxIPCAmplitude = 5.0_DbKi * D2R
 
         ! Body
         ! Pass tip deflection signals through the Coleman transform to get the tilt and yaw tip deflection axis
@@ -632,6 +634,7 @@ CONTAINS
 
         ! Filter the tilt and yaw signals with a varying 3P notch filter.
         ! The yaw channel is not used here but is nice for debugging and analysis.
+        ! Implement a parameter varying notch filter, this assumes a constant omega.
         omega = 3*LocalVar%RotSpeedF
         LocalVar%TipDxcColF_1P = NotchFilter(LocalVar%TipDxcCol_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
         LocalVar%TipDxcTiltF_1P = NotchFilter(LocalVar%TipDxcTilt_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
@@ -645,7 +648,7 @@ CONTAINS
 
         ! Control the error. The controller is saturated on (-inf, 0] so that it never decreases the tower clearance towards the reference.
         ! We don't actually need to saturate to -inf, -Pi is more than enough.
-        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P, Kp, Ki, -3.1415_DbKi, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
         ! Pass the tilt axis through the inverse Coleman transform to get the commanded pitch angles
         CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, 0.0_DbKi, LocalVar%Azimuth, NP_1, IPC_aziOffset, PitComIPC)
