@@ -217,7 +217,15 @@ ControlParameters:
     IPC_CornerFreqAct:
       <<: *real
       description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
-    
+
+    # Tower clearance IPC
+    TCIPC_ControlMode:
+      <<: *integer
+      description: Tower clearance IPC mode {0 - no tower clearance IPC, 1 - tower clearance IPC}
+    TCIPC_MaxTipDeflection:
+      <<: *real
+      description: Maximum tip deflection at the tower, used by the tower clearance IPC controller [m]
+
     # Collective Pitch Controller
     PC_ControlMode:
       <<: *integer

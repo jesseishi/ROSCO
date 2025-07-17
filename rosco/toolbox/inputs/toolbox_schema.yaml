@@ -661,6 +661,9 @@ properties:
                     IPC_ControlMode:
                         type: number
                         description: Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0- off, 1- 1P reductions, 2- 1P+2P reductions)
+                    TCIPC_ControlMode:
+                        type: number
+                        description: Turn Tower Clearance Individual Pitch Control (TCIPC) for tower clearance (0- off, 1- on)
                     PC_ControlMode:
                         type: number
                         description: Blade pitch control mode (0- No pitch, fix to fine pitch, 1- active PI blade pitch control)
@@ -846,6 +849,10 @@ properties:
                         type: number
                         description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal (0- Disable)
                         units: rad/s
+                    TCIPC_MaxTipDeflection:
+                        type: number
+                        description: Maximum tip deflection at the tower passing for TCIPC.
+                        units: m
                     VS_GenEff:
                         type: number
                         description: Generator efficiency mechanical power -> electrical power, should match the efficiency defined in the generator properties

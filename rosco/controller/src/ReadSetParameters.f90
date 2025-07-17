@@ -379,6 +379,7 @@ CONTAINS
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'TCIPC_ControlMode',      CntrPar%TCIPC_ControlMode,        accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
         CALL ParseInput(FileLines,'VS_FBP',          CntrPar%VS_FBP,            accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
@@ -456,6 +457,11 @@ CONTAINS
         CALL ParseAry(  FileLines,  'IPC_aziOffset',    CntrPar%IPC_aziOffset,      2,  accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
+
+        !----------------- Tower clearance IPC constants -------------------
+        CALL ParseInput(FileLines,  'TCIPC_MaxTipDeflection', CntrPar%TCIPC_MaxTipDeflection, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        IF (ErrVar%aviFAIL < 0) RETURN
+
 
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
         CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,                  accINFILE(1), ErrVar, .FALSE., UnEc)

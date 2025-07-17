@@ -74,8 +74,13 @@ CONTAINS
         ! ELSE
         !     LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
         ! END IF
-        ! Run tower clearance IPC. For now always, but we should make a flag for this.
-        CALL IPCMBCTowerClearance(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        ! Find tower clearance IPC contribution. 
+        ! For now, this is _instead_ of IPC, but in the future they could be integrated together.
+        IF (CntrPar%TCIPC_ControlMode > 0) THEN
+            CALL TCIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        ELSE
+            LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
+        END IF
         
         ! Include tower fore-aft tower vibration damping control
         IF (CntrPar%TD_Mode > 0) THEN
@@ -588,7 +593,7 @@ CONTAINS
 
     END SUBROUTINE IPC
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE IPCMBCTowerClearance(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    SUBROUTINE TCIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Individual pitch control for added tower clearance subroutine using the multiblade coordinate transformation.
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
@@ -608,7 +613,6 @@ CONTAINS
         INTEGER(IntKi)              :: K
 
         ! TODO: Move these to the appropriate data structures.
-        REAL(DbKi)                  :: MaxTipDefl_1P
         REAL(DbKi)                  :: TipDxcTiltRef_1P
         REAL(DbKi)                  :: Kp, Ki
         REAL(DbKi)                  :: betaNum, betaDen
@@ -619,7 +623,6 @@ CONTAINS
 
         betaNum = 0.001_DbKi
         betaDen = 0.1_DbKi
-        MaxTipDefl_1P = 5.0_DbKi
         Kp = 0.0_DbKi
         Ki = -0.0028_DbKi
         IPC_aziOffset = 0.4891_DbKi
@@ -641,7 +644,7 @@ CONTAINS
         LocalVar%TipDxcYawF_1P = NotchFilter(LocalVar%TipDxcYaw_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
 
         ! Define the tilt tower clearance reference.
-        LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcColF_1P - MaxTipDefl_1P
+        LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcColF_1P - CntrPar%TCIPC_MaxTipDeflection
 
         ! Define the error.
         TipDxcTiltError_1P = LocalVar%TipDxcTiltRef_1P - LocalVar%TipDxcTiltF_1P
@@ -672,7 +675,7 @@ CONTAINS
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
-    END SUBROUTINE IPCMBCTowerClearance
+    END SUBROUTINE TCIPC
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
