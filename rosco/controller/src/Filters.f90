@@ -303,12 +303,15 @@ CONTAINS
             FP%nf_OutputSignalLast2(inst)  = InitialValue_
             FP%nf_InputSignalLast1(inst)   = InitialValue_
             FP%nf_InputSignalLast2(inst)   = InitialValue_
-            FP%nf_b2(inst) = (K**2.0 + 2.0*omega*BetaNum*K + omega**2.0)/(K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
-            FP%nf_b1(inst) = (2.0*omega**2.0 - 2.0*K**2.0)  / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0);
-            FP%nf_b0(inst) = (K**2.0 - 2.0*omega*BetaNum*K + omega**2.0) / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
-            FP%nf_a1(inst) = (2.0*omega**2.0 - 2.0*K**2.0)  / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
-            FP%nf_a0(inst) = (K**2.0 - 2.0*omega*BetaDen*K + omega**2.0)/ (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
         ENDIF
+        
+        ! Calculate the coefficients. Doing this outside the initialization-block, makes this a parameter-varying notch filter and
+        ! allows the notch to always be centered around `omega`.
+        FP%nf_b2(inst) = (K**2.0 + 2.0*omega*BetaNum*K + omega**2.0)/(K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
+        FP%nf_b1(inst) = (2.0*omega**2.0 - 2.0*K**2.0)  / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0);
+        FP%nf_b0(inst) = (K**2.0 - 2.0*omega*BetaNum*K + omega**2.0) / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
+        FP%nf_a1(inst) = (2.0*omega**2.0 - 2.0*K**2.0)  / (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
+        FP%nf_a0(inst) = (K**2.0 - 2.0*omega*BetaDen*K + omega**2.0)/ (K**2.0 + 2.0*omega*BetaDen*K + omega**2.0)
         
         ! Body
         NotchFilter = FP%nf_b2(inst)*InputSignal + FP%nf_b1(inst)*FP%nf_InputSignalLast1(inst) + FP%nf_b0(inst)*FP%nf_InputSignalLast2(inst) - FP%nf_a1(inst)*FP%nf_OutputSignalLast1(inst) - FP%nf_a0(inst)*FP%nf_OutputSignalLast2(inst)
