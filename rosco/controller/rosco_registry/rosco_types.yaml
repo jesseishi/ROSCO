@@ -225,6 +225,17 @@ ControlParameters:
     TCIPC_MaxTipDeflection:
       <<: *real
       description: Maximum tip deflection at the tower, used by the tower clearance IPC controller [m]
+    TCIPC_GS_n:
+      <<: *integer
+      description: Amount of gain-scheduling table entries
+    TCIPC_GS_WindSpeeds:
+      <<: *real
+      description: Gain-schedule table - wind speeds [m/s]
+      allocatable: True
+    TCIPC_GS_AzimuthOffsets:
+      <<: *real
+      description: Gain-schedule table - azimuth offsets [rad]
+      allocatable: True
 
     # Collective Pitch Controller
     PC_ControlMode:
@@ -1524,6 +1535,9 @@ LocalVariables:
     TipDxcTiltRef_1P:
       <<: *real
       description: Reference tip deflection in the tilt-direction, 1P (m)
+    TCIPC_AzimuthOffset:
+      <<: *real
+      description: Azimuth offset used in the MBC transformation for tower clearance control that is interpolated from a lookup table (m)
     CC_DesiredL:
       <<: *real
       size: 12

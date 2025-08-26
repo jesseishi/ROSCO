@@ -459,7 +459,10 @@ CONTAINS
         IF (ErrVar%aviFAIL < 0) RETURN
 
         !----------------- Tower clearance IPC constants -------------------
-        CALL ParseInput(FileLines,  'TCIPC_MaxTipDeflection', CntrPar%TCIPC_MaxTipDeflection, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TCIPC_MaxTipDeflection',  CntrPar%TCIPC_MaxTipDeflection,                      accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TCIPC_GS_n',              CntrPar%TCIPC_GS_n,                                  accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'TCIPC_GS_WindSpeeds',     CntrPar%TCIPC_GS_WindSpeeds,     CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'TCIPC_GS_AzimuthOffsets', CntrPar%TCIPC_GS_AzimuthOffsets, CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
 
@@ -1254,6 +1257,19 @@ CONTAINS
         IF (CntrPar%IPC_KI(2) < 0.0)  THEN
             ErrVar%aviFAIL = -1
             ErrVar%ErrMsg  = 'IPC_KP(2) must be zero or greater than zero.'
+        ENDIF
+
+        !------- TOWER CLEARANCE CONTROL ------------------------------------------
+        ! TCIPC_GS_n must be greater than zero because it is the number of elements in a table.
+        IF (CntrPar%TCIPC_GS_n <= 0.0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'TCIPC_GS_n must be greater than 0'
+        ENDIF
+
+        ! TCIPC_GS_WindSpeeds must be non-decreasing because it is used in a lookup table.
+        IF (CntrPar%TCIPC_ControlMode .NE. 0 .AND. .NOT. NonDecreasing(CntrPar%TCIPC_GS_WindSpeeds)) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'TCIPC_GS_WindSpeeds must be non-decreasing'
         ENDIF
 
         !------- VS TORQUE CONTROL ------------------------------------------------

@@ -853,6 +853,21 @@ properties:
                         type: number
                         description: Maximum tip deflection at the tower passing for TCIPC.
                         units: m
+                    TCIPC_GS_n:
+                        type: number
+                        description: Amount of gain-scheduling table entries
+                    TCIPC_GS_WindSpeeds:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table - wind speeds [m/s]
+                        unit: m/s
+                    TCIPC_GS_AzimuthOffsets:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table - azimuth offsets [rad]
+                        unit: rad                
                     VS_GenEff:
                         type: number
                         description: Generator efficiency mechanical power -> electrical power, should match the efficiency defined in the generator properties
