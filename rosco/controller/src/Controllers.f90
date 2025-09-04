@@ -77,7 +77,7 @@ CONTAINS
         ! Find tower clearance IPC contribution. 
         ! For now, this is _instead_ of IPC, but in the future they could be integrated together.
         IF (CntrPar%TCIPC_ControlMode > 0) THEN
-            CALL TCIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+            CALL TowerClearanceIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
         END IF
@@ -116,16 +116,16 @@ CONTAINS
             LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)                    ! Saturate the command using the pitch saturation limits
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%IPC_PitComF(K)                                          ! Add IPC
             
-            ! ! Hard IPC saturation by peak shaving limit
-            ! IF (CntrPar%IPC_SatMode == 1) THEN
-            !     LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
-            ! END IF
+            ! Hard IPC saturation by peak shaving limit
+            IF (CntrPar%IPC_SatMode == 1) THEN
+                LocalVar%PitCom(K) = saturate(LocalVar%PitCom(K), LocalVar%PC_MinPit, CntrPar%PC_MaxPit)  
+            END IF
             
             ! Add ZeroMQ pitch commands
             LocalVar%PitCom(K) = LocalVar%PitCom(K) + LocalVar%ZMQ_PitOffset(K)
 
             ! Rate limit                  
-            ! LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitCom(K) = ratelimit(LocalVar%PitCom(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
         END DO 
 
         ! Open Loop control, use if
@@ -180,13 +180,13 @@ CONTAINS
             ENDIF
         END DO
 
-        ! ! Hardware saturation: using CntrPar%PC_MinPit
-        ! DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-        !     ! Saturate the pitch command using the overall (hardware) limit
-        !     LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
-        !     ! Saturate the overall command of blade K using the pitch rate limit
-        !     LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
-        ! END DO
+        ! Hardware saturation: using CntrPar%PC_MinPit
+        DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
+            ! Saturate the pitch command using the overall (hardware) limit
+            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
+            ! Saturate the overall command of blade K using the pitch rate limit
+            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+        END DO
 
         ! Add pitch actuator fault for blade K
         IF (CntrPar%PF_Mode == 1) THEN
@@ -593,7 +593,7 @@ CONTAINS
 
     END SUBROUTINE IPC
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE TCIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    SUBROUTINE TowerClearanceIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ! Individual pitch control for added tower clearance subroutine using the multiblade coordinate transformation.
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
@@ -678,7 +678,7 @@ CONTAINS
             ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
         ENDIF
 
-    END SUBROUTINE TCIPC
+    END SUBROUTINE TowerClearanceIPC
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
