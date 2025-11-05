@@ -167,7 +167,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<13.1f}       ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {{0: Disable}}, [rad/s]\n'.format(rosco_vt['IPC_CornerFreqAct']))
     file.write('\n')
     file.write('!------- TOWER CLEARANCE INDIVIDUAL PITCH CONTROL ----------------------------\n')
-    file.write('{:<11d}         ! TCIPC_MaxTipDeflection  - Maximum tip deflection at the tower passing, [m]\n'.format(rosco_vt['TCIPC_MaxTipDeflection']))
+    file.write('{:<13.1f}         ! TCIPC_MaxTipDeflection  - Maximum tip deflection at the tower passing, [m]\n'.format(rosco_vt['TCIPC_MaxTipDeflection']))
     file.write('{:<11d}         ! TCIPC_GS_n              - Amount of gain-scheduling table entries\n'.format(int(rosco_vt['TCIPC_GS_n'])))
     file.write('{}              ! TCIPC_GS_WindSpeeds     - Wind speeds for gain-scheduling table, [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_WindSpeeds'][i]) for i in range(len(rosco_vt['TCIPC_GS_WindSpeeds'])))))
     file.write('{}              ! TCIPC_GS_AzimuthOffsets - Azimuth offsets for gain-scheduling table, [rad]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_AzimuthOffsets'][i]) for i in range(len(rosco_vt['TCIPC_GS_AzimuthOffsets'])))))
@@ -520,6 +520,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_LPFType']	    = int(controller.F_LPFType)
     DISCON_dict['F_NotchType']		= int(controller.F_NotchType)
     DISCON_dict['IPC_ControlMode']	= int(controller.IPC_ControlMode)
+    DISCON_dict['TCIPC_ControlMode']= int(controller.TCIPC_ControlMode)
     DISCON_dict['VS_ControlMode']	= int(controller.VS_ControlMode)
     DISCON_dict['VS_ConstPower']	= int(controller.VS_ConstPower)
     DISCON_dict['VS_FBP']           = int(controller.VS_FBP)
@@ -589,6 +590,9 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['IPC_KI']           = [controller.Ki_ipc1p, controller.Ki_ipc2p]
     DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]
     DISCON_dict['IPC_CornerFreqAct'] = 0.0
+    # ------- Tower clearance IPC -------
+    # TODO: Not sure if I have to add stuff here.
+    DISCON_dict['TCIPC_MaxTipDeflection'] = controller.TCIPC_MaxTipDeflection
     # ------- VS TORQUE CONTROL -------
     DISCON_dict['VS_GenEff']		= turbine.GenEff
     DISCON_dict['VS_ArSatTq']		= turbine.rated_torque

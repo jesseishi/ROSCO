@@ -53,6 +53,7 @@ class Controller():
         self.F_LPFType          = controller_params['F_LPFType']
         self.F_NotchType        = controller_params['F_NotchType']
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
+        self.TCIPC_ControlMode  = controller_params['TCIPC_ControlMode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.VS_ConstPower      = controller_params['VS_ConstPower']
         self.VS_FBP             = controller_params['VS_FBP']
@@ -97,6 +98,7 @@ class Controller():
         self.Ki_ipc1p           = controller_params['IPC_Ki1p']
         self.Kp_ipc2p           = controller_params['IPC_Kp2p']
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
+        self.TCIPC_MaxTipDeflection = controller_params['TCIPC_MaxTipDeflection']
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
 
