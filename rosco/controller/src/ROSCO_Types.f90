@@ -51,12 +51,13 @@ TYPE, PUBLIC :: ControlParameters
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_KI                      ! Integral gain for the individual pitch controller, [-].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: IPC_aziOffset               ! Phase offset added to the azimuth angle for the individual pitch controller, [rad].
     REAL(DbKi)                    :: IPC_CornerFreqAct           ! Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
-    INTEGER(IntKi)                :: TCIPC_ControlMode           ! Tower clearance IPC mode {0 - no tower clearance IPC, 1 - tower clearance IPC}
-    REAL(DbKi)                    :: TCIPC_MaxTipDeflection      ! Maximum tip deflection at the tower, used by the tower clearance IPC controller [m]
-    INTEGER(IntKi)                :: TCIPC_ZeroYawDeflection             ! Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}
-    INTEGER(IntKi)                :: TCIPC_GS_n                  ! Amount of gain-scheduling table entries
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_WindSpeeds         ! Gain-schedule table - wind speeds [m/s]
-    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_AzimuthOffsets     ! Gain-schedule table - azimuth offsets [rad]
+    INTEGER(IntKi)                :: TCIPC_ControlMode           ! Tower clearance IPC mode {0 - no tower clearance IPC, 1 - tower clearance IPC}.
+    REAL(DbKi)                    :: TCIPC_MaxTipDeflection      ! Maximum tip deflection at the tower, used by the tower clearance IPC controller [m].
+    INTEGER(IntKi)                :: TCIPC_nHarmonics            ! Number of harmonics to consider when calculating the blade deflection at the tower passing.
+    INTEGER(IntKi)                :: TCIPC_ZeroYawDeflection     ! Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}.
+    INTEGER(IntKi)                :: TCIPC_GS_n                  ! Amount of gain-scheduling table entries.
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_WindSpeeds         ! Gain-schedule table - wind speeds [m/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_AzimuthOffsets     ! Gain-schedule table - azimuth offsets [rad].
     INTEGER(IntKi)                :: PC_ControlMode              ! Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}
     INTEGER(IntKi)                :: PC_GS_n                     ! Amount of gain-scheduling table entries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_angles                ! Gain-schedule table - pitch angles

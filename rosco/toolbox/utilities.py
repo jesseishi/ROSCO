@@ -168,6 +168,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('\n')
     file.write('!------- TOWER CLEARANCE INDIVIDUAL PITCH CONTROL ----------------------------\n')
     file.write('{:<13.1f}       ! TCIPC_MaxTipDeflection  - Maximum tip deflection at the tower passing, [m]\n'.format(rosco_vt['TCIPC_MaxTipDeflection']))
+    file.write('{:<11d}         ! TCIPC_nHarmonics  - Number of harmonics to consider when calculating the blade deflection at the tower passing.\n'.format(rosco_vt['TCIPC_nHarmonics']))
     file.write('{:<11d}         ! TCIPC_ZeroYawDeflection         - Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {{0 - disabled, 1 - enabled}}.\n'.format(int(rosco_vt['TCIPC_ZeroYawDeflection'])))
     file.write('{:<11d}         ! TCIPC_GS_n              - Amount of gain-scheduling table entries\n'.format(int(rosco_vt['TCIPC_GS_n'])))
     file.write('{}              ! TCIPC_GS_WindSpeeds     - Wind speeds for gain-scheduling table, [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_WindSpeeds'][i]) for i in range(len(rosco_vt['TCIPC_GS_WindSpeeds'])))))

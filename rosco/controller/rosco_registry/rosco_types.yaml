@@ -221,23 +221,26 @@ ControlParameters:
     # Tower clearance IPC
     TCIPC_ControlMode:
       <<: *integer
-      description: Tower clearance IPC mode {0 - no tower clearance IPC, 1 - tower clearance IPC}
+      description: Tower clearance IPC mode {0 - no tower clearance IPC, 1 - tower clearance IPC}.
     TCIPC_MaxTipDeflection:
       <<: *real
-      description: Maximum tip deflection at the tower, used by the tower clearance IPC controller [m]
+      description: Maximum tip deflection at the tower, used by the tower clearance IPC controller [m].
+    TCIPC_nHarmonics:
+      <<: *integer
+      description: Number of harmonics to consider when calculating the blade deflection at the tower passing.
     TCIPC_ZeroYawDeflection:
       <<: *integer
-      description: Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}
+      description: Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}.
     TCIPC_GS_n:
       <<: *integer
-      description: Amount of gain-scheduling table entries
+      description: Amount of gain-scheduling table entries.
     TCIPC_GS_WindSpeeds:
       <<: *real
-      description: Gain-schedule table - wind speeds [m/s]
+      description: Gain-schedule table - wind speeds [m/s].
       allocatable: True
     TCIPC_GS_AzimuthOffsets:
       <<: *real
-      description: Gain-schedule table - azimuth offsets [rad]
+      description: Gain-schedule table - azimuth offsets [rad].
       allocatable: True
 
     # Collective Pitch Controller

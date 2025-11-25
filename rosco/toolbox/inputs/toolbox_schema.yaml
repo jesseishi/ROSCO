@@ -853,6 +853,9 @@ properties:
                         type: number
                         description: Maximum tip deflection at the tower passing for TCIPC.
                         units: m
+                    TCIPC_nHarmonics:
+                        type: number
+                        description: Number of harmonics to consider when calculating the blade deflection at the tower passing.
                     TCIPC_ZeroYawDeflection:
                         type: number
                         description: Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}.
