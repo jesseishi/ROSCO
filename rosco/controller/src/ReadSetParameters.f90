@@ -1262,6 +1262,12 @@ CONTAINS
         ENDIF
 
         !------- TOWER CLEARANCE CONTROL ------------------------------------------
+        ! TCIPC_nHarmonics must be at least 1, zero is not allowed. 1 is the minimum because we actuate on this harmonic, higher
+        ! harmonics are just to increase the accuracy of the method.
+        IF (CntrPar%TCIPC_nHarmonics <= 0) THEN
+            ErrVar%aviFAIL = -1
+            ErrVar%ErrMsg  = 'TCIPC_nHarmonics must be greater than 0'
+        ENDIF
         ! TCIPC_GS_n must be greater than zero because it is the number of elements in a table.
         IF (CntrPar%TCIPC_GS_n <= 0.0) THEN
             ErrVar%aviFAIL = -1

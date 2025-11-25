@@ -99,6 +99,13 @@ class Controller():
         self.Kp_ipc2p           = controller_params['IPC_Kp2p']
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
         self.TCIPC_MaxTipDeflection = controller_params['TCIPC_MaxTipDeflection']
+        self.TCIPC_nHarmonics   = controller_params['TCIPC_nHarmonics']
+        self.TCIPC_ZeroYawDeflection = controller_params['TCIPC_ZeroYawDeflection']
+        # These two variables should be integers, so let's check that.
+        if self.TCIPC_nHarmonics != int(self.TCIPC_nHarmonics):
+            raise ValueError(f"TCIPC_nHarmonics must have an integer value, but got {self.TCIPC_nHarmonics}.")
+        if self.TCIPC_ZeroYawDeflection != int(self.TCIPC_ZeroYawDeflection):
+            raise ValueError(f"TCIPC_ZeroYawDeflection must have an integer value, but got {self.TCIPC_ZeroYawDeflection}.")
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
 

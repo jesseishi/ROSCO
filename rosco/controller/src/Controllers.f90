@@ -658,7 +658,7 @@ CONTAINS
         ! Define the tilt tower clearance reference for 1P control.
         ! Reference accounts for collective mode and all higher harmonics (2P, 3P, ...).
         LocalVar%TipDxcTiltRef_1P = CntrPar%TCIPC_MaxTipDeflection - TipDxcCol_0P
-        DO n=2,CntrPar%TCIPC_nHarmonics
+        DO n=2,CntrPar%TCIPC_nHarmonics  ! We start at 2 on purpose.
             LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(n)
         END DO
         
@@ -666,7 +666,6 @@ CONTAINS
         TipDxcTiltError_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(1)
 
         ! Because notch filters are linear, we can filter before or after all the additions. After is cheaper.
-        ! TODO: Make the notch filter variable frequency.
         omega = 3*LocalVar%RotSpeedF
         TipDxcTiltError_1P_F = NotchFilter(TipDxcTiltError_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
 
