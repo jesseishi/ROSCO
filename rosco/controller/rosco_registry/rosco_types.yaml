@@ -225,6 +225,9 @@ ControlParameters:
     TCIPC_MaxTipDeflection:
       <<: *real
       description: Maximum tip deflection at the tower, used by the tower clearance IPC controller [m]
+    TCIPC_ZeroYawDeflection:
+      <<: *integer
+      description: Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}
     TCIPC_GS_n:
       <<: *integer
       description: Amount of gain-scheduling table entries
@@ -1274,6 +1277,9 @@ LocalVariables:
     IPCTip_AxisTilt_1P:
       <<: *real
       description: Integral of the tilt axis for tip deflection, 1P
+    IPCTip_AxisYaw_1P:
+      <<: *real
+      description: Integral of the yaw axis for tip deflection, 1P
     IPC_AxisTilt_1P:
       <<: *real
       description: Integral of the direct axis, 1P

@@ -460,6 +460,7 @@ CONTAINS
 
         !----------------- Tower clearance IPC constants -------------------
         CALL ParseInput(FileLines,  'TCIPC_MaxTipDeflection',  CntrPar%TCIPC_MaxTipDeflection,                      accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TCIPC_ZeroYawDeflection',         CntrPar%TCIPC_ZeroYawDeflection,                             accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         CALL ParseInput(FileLines,  'TCIPC_GS_n',              CntrPar%TCIPC_GS_n,                                  accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'TCIPC_GS_WindSpeeds',     CntrPar%TCIPC_GS_WindSpeeds,     CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'TCIPC_GS_AzimuthOffsets', CntrPar%TCIPC_GS_AzimuthOffsets, CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)

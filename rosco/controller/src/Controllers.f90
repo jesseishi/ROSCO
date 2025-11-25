@@ -609,7 +609,7 @@ CONTAINS
         REAL(DbKi)                  :: TipDxc(3)
         REAL(DbKi)                  :: omega
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3)
-        REAL(DbKi)                  :: TipDxcTiltError_1P
+        REAL(DbKi)                  :: TipDxcTiltError_1P, TipDxcYawError_1P
         INTEGER(IntKi)              :: K
 
         ! TODO: Move these to the appropriate data structures.
@@ -656,8 +656,19 @@ CONTAINS
         ! We don't actually need to saturate to -inf, -Pi is more than enough.
         LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
-        ! Pass the tilt axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, 0.0_DbKi, LocalVar%Azimuth, NP_1, LocalVar%TCIPC_AzimuthOffset, PitComIPC)
+        ! Yaw deflection controller - drive yaw deflection to zero if enabled
+        IF (CntrPar%TCIPC_ZeroYawDeflection == 1) THEN
+            ! Define the error (target yaw deflection is zero)
+            TipDxcYawError_1P = 0.0_DbKi - LocalVar%TipDxcYawF_1P
+            
+            ! Control the error with symmetric saturation
+            LocalVar%IPCTip_AxisYaw_1P = PIController(TipDxcYawError_1P, Kp, Ki, -MaxIPCAmplitude, MaxIPCAmplitude, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        ELSE
+            LocalVar%IPCTip_AxisYaw_1P = 0.0_DbKi
+        END IF
+
+        ! Pass the tilt and yaw axes through the inverse Coleman transform to get the commanded pitch angles
+        CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, LocalVar%IPCTip_AxisYaw_1P, LocalVar%Azimuth, NP_1, LocalVar%TCIPC_AzimuthOffset, PitComIPC)
 
         ! Sum nP IPC contributions and store to LocalVar data type
         DO K = 1,LocalVar%NumBl
