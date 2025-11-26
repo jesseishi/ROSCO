@@ -634,7 +634,8 @@ CONTAINS
         
         ! For the tower clearance IPC controller we use not only the 1P Coleman transformation, but up to the Nth transformation.
         ! One particularity about this implementation is that we adjust the azimuth position to be 0 degrees when the blade is
-        ! pointing down. This coincides with the tower passing, which makes the calculations a lot easier.
+        ! pointing down. This coincides with the tower passing, which makes the calculations a lot easier. Because a positive tilt
+        ! is now directly towards the tower for all harmonics.
         AzimuthTowerClearanceDatum = LocalVar%Azimuth - PI
 
         ! Prepare tip deflection array.
@@ -657,6 +658,7 @@ CONTAINS
 
         ! Define the tilt tower clearance reference for 1P control.
         ! Reference accounts for collective mode and all higher harmonics (2P, 3P, ...).
+        ! Note that the signs are different than what you would expect because we're using the AzimuthTowerClearanceDatum.
         LocalVar%TipDxcTiltRef_1P = CntrPar%TCIPC_MaxTipDeflection - TipDxcCol_0P
         DO n=2,CntrPar%TCIPC_nHarmonics  ! We start at 2 on purpose.
             LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(n)
@@ -666,12 +668,16 @@ CONTAINS
         TipDxcTiltError_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(1)
 
         ! Because notch filters are linear, we can filter before or after all the additions. After is cheaper.
-        omega = 3*LocalVar%RotSpeedF
-        TipDxcTiltError_1P_F = NotchFilter(TipDxcTiltError_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+        ! Since we're dealing with higher harmonics, we need to have some higher order filters too.
+        TipDxcTiltError_1P_F = TipDxcTiltError_1P
+        DO n=3, 9, 3
+            omega = n * LocalVar%RotSpeedF
+            TipDxcTiltError_1P_F = NotchFilter(TipDxcTiltError_1P_F, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+        END DO
 
-        ! Control the error. The controller is saturated on (-MaxIPCAmplitude, 0] so that it never decreases the tower clearance
+        ! Control the error. The controller is saturated on [0, MaxIPCAmplitude) so that it never decreases the tower clearance
         ! towards the reference and doesn't produce too high IPC action.
-        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, 0.0_DbKi, MaxIPCAmplitude, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
         ! The main part of the controller is now done. However, we have an additional option, which is to drive the yaw deflection
         ! to zero. This has no effect on the blade deflection at the tower passing but reduces the blade DEL at the expense of
