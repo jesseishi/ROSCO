@@ -610,13 +610,13 @@ CONTAINS
         REAL(DbKi)                  :: TipDxcCol_0P
         REAL(DbKi)                  :: omega
         REAL(DbKi)                  :: PitComIPC(3), PitComIPCF(3)
-        REAL(DbKi)                  :: TipDxcTiltError_1P, TipDxcYawError_1P
+        REAL(DbKi)                  :: TipDxc_TowerPassing, TipDxc_TowerPassing_F
+        REAL(DbKi)                  :: TipDxcYawError_1P
         REAL(DbKi)                  :: TipDxcTiltError_1P_F, TipDxcYawError_1P_F
         INTEGER(IntKi)              :: K
         INTEGER(IntKi)              :: n
         REAL(DbKi)                  :: TipDxcTilt_nP(CntrPar%TCIPC_nHarmonics)
         REAL(DbKi)                  :: TipDxcYaw_nP(CntrPar%TCIPC_nHarmonics)
-        REAL(DbKi)                  :: AzimuthTowerClearanceDatum
 
         ! Parameters.
         REAL(DbKi), PARAMETER       :: Kp = 0.0_DbKi
@@ -631,12 +631,6 @@ CONTAINS
         ! Interpolate the optimal azimuth angle from the lookup table. We use the same wind speed here as is used to get the speed
         ! reference.
         LocalVar%TCIPC_AzimuthOffset = interp1d(CntrPar%TCIPC_GS_WindSpeeds, CntrPar%TCIPC_GS_AzimuthOffsets, LocalVar%PRC_WSE_F, ErrVar)
-        
-        ! For the tower clearance IPC controller we use not only the 1P Coleman transformation, but up to the Nth transformation.
-        ! One particularity about this implementation is that we adjust the azimuth position to be 0 degrees when the blade is
-        ! pointing down. This coincides with the tower passing, which makes the calculations a lot easier. Because a positive tilt
-        ! is now directly towards the tower for all harmonics.
-        AzimuthTowerClearanceDatum = LocalVar%Azimuth - PI
 
         ! Prepare tip deflection array.
         TipDxc(1) = LocalVar%TipDxc1
@@ -648,7 +642,7 @@ CONTAINS
         
         ! Calculate all harmonics (1P through nP) in a single loop.
         DO n=1,CntrPar%TCIPC_nHarmonics
-            CALL ColemanTransform(TipDxc, AzimuthTowerClearanceDatum, n, TipDxcTilt_nP(n), TipDxcYaw_nP(n))
+            CALL ColemanTransform(TipDxc, LocalVar%Azimuth, n, TipDxcTilt_nP(n), TipDxcYaw_nP(n))
         END DO
 
         ! Store 1P components in LocalVar for potential debugging/monitoring.
@@ -656,28 +650,29 @@ CONTAINS
         LocalVar%TipDxcTilt_1P = TipDxcTilt_nP(1)
         LocalVar%TipDxcYaw_1P = TipDxcYaw_nP(1)
 
-        ! Define the tilt tower clearance reference for 1P control.
-        ! Reference accounts for collective mode and all higher harmonics (2P, 3P, ...).
-        ! Note that the signs are different than what you would expect because we're using the AzimuthTowerClearanceDatum.
-        LocalVar%TipDxcTiltRef_1P = CntrPar%TCIPC_MaxTipDeflection - TipDxcCol_0P
-        DO n=2,CntrPar%TCIPC_nHarmonics  ! We start at 2 on purpose.
-            LocalVar%TipDxcTiltRef_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(n)
+        ! Calculate the tip deflection at the tower passing.
+        TipDxc_TowerPassing = TipDxcCol_0P
+        DO n = 1, CntrPar%TCIPC_nHarmonics
+            TipDxc_TowerPassing = TipDxc_TowerPassing + (-1)**n * TipDxcTilt_nP(n)
         END DO
-        
-        ! Define the error
-        TipDxcTiltError_1P = LocalVar%TipDxcTiltRef_1P - TipDxcTilt_nP(1)
 
-        ! Because notch filters are linear, we can filter before or after all the additions. After is cheaper.
-        ! Since we're dealing with higher harmonics, we need to have some higher order filters too.
-        TipDxcTiltError_1P_F = TipDxcTiltError_1P
+        ! When the turbine has 3 blades, multiples of 3P get into this steady-state estimate, so we filter them out. Since we are
+        ! also using higher harmonics, multiple notch filters are required.
+        TipDxc_TowerPassing_F = TipDxc_TowerPassing
         DO n=3, 9, 3
             omega = n * LocalVar%RotSpeedF
-            TipDxcTiltError_1P_F = NotchFilter(TipDxcTiltError_1P_F, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
+            TipDxc_TowerPassing_F = NotchFilter(TipDxc_TowerPassing_F, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
         END DO
+
+        ! Assign our final estimate to a debug variable.
+        DebugVar%TipDxc_TowerPassing_F = TipDxc_TowerPassing_F
+
+        ! Now calculate the tip deflection error which we will use as a rotor tilting error (by flipping the sign).
+        TipDxcTiltError_1P_F = -(CntrPar%TCIPC_MaxTipDeflection - TipDxc_TowerPassing_F)
 
         ! Control the error. The controller is saturated on [0, MaxIPCAmplitude) so that it never decreases the tower clearance
         ! towards the reference and doesn't produce too high IPC action.
-        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, 0.0_DbKi, MaxIPCAmplitude, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
         ! The main part of the controller is now done. However, we have an additional option, which is to drive the yaw deflection
         ! to zero. This has no effect on the blade deflection at the tower passing but reduces the blade DEL at the expense of
@@ -696,8 +691,7 @@ CONTAINS
         END IF
 
         ! Pass the tilt and yaw axes through the inverse Coleman transform to get the commanded pitch angles.
-        ! Note that we again use the AzimuthTowerClearanceDatum and the azimuth offset in the inverse transformation.
-        CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, LocalVar%IPCTip_AxisYaw_1P, AzimuthTowerClearanceDatum, NP_1, LocalVar%TCIPC_AzimuthOffset, PitComIPC)
+        CALL ColemanTransformInverse(LocalVar%IPCTip_AxisTilt_1P, LocalVar%IPCTip_AxisYaw_1P, LocalVar%Azimuth, NP_1, LocalVar%TCIPC_AzimuthOffset, PitComIPC)
 
         ! Sum nP IPC contributions and store to LocalVar data type
         DO K = 1,LocalVar%NumBl

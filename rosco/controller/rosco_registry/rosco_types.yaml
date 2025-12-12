@@ -1751,6 +1751,9 @@ DebugVariables:
   PC_RefSpd:
     <<: *real
     description: Generator speed set point of pitch controller [rad/s]
+  TipDxc_TowerPassing_F:
+    <<: *real
+    description: Estimate of the tip deflection at the tower passing [m]
 
 ErrorVariables:
   size_avcMSG: 

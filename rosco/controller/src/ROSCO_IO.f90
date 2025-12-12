@@ -730,7 +730,7 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     CHARACTER(15), DIMENSION(163)      :: LocalVarOutStrings
     REAL(DbKi), ALLOCATABLE         :: LocalVarOutData(:)
  
-    nDebugOuts = 26
+    nDebugOuts = 27
     Allocate(DebugOutData(nDebugOuts))
     Allocate(DebugOutStrings(nDebugOuts))
     Allocate(DebugOutUnits(nDebugOuts))
@@ -760,18 +760,19 @@ SUBROUTINE Debug(LocalVar, CntrPar, DebugVar, ErrVar, avrSWAP, RootName, size_av
     DebugOutData(24) = DebugVar%YawState
     DebugOutData(25) = DebugVar%VS_RefSpd
     DebugOutData(26) = DebugVar%PC_RefSpd
+    DebugOutData(27) = DebugVar%TipDxc_TowerPassing_F
     DebugOutStrings = [CHARACTER(15) ::  'WE_Cp', 'WE_b', 'WE_w', 'WE_t', 'WE_Vm', & 
                                       'WE_Vt', 'WE_Vw', 'WE_lambda', 'PC_PICommand', 'GenSpeedF', & 
                                       'RotSpeedF', 'NacIMU_FA_AccF', 'FA_AccF', 'Fl_PitCom', 'PC_MinPit', & 
                                       'axisTilt_1P', 'axisYaw_1P', 'axisTilt_2P', 'axisYaw_2P', 'YawRateCom', & 
                                       'NacHeadingTarget', 'NacVaneOffset', 'Yaw_Err', 'YawState', 'VS_RefSpd', & 
-                                      'PC_RefSpd']
+                                      'PC_RefSpd', 'TipDxc_TowerPassing_F']
     DebugOutUnits = [CHARACTER(15) ::  '[-]', '[-]', '[-]', '[-]', '[m/s]', & 
                                       '[m/s]', '[m/s]', '[rad]', '[rad]', '[rad/s]', & 
                                       '[rad/s]', '[rad/s]', '[m/s]', '[rad]', '[rad]', & 
                                       '[N/A]', '[N/A]', '[N/A]', '[N/A]', '[rad/s]', & 
                                       '[deg]', '[deg]', '[deg]', '[N/A]', '[rad/s]', & 
-                                      '[rad/s]']
+                                      '[rad/s]', '[m]']
     nLocalVars = 163
     Allocate(LocalVarOutData(nLocalVars))
     LocalVarOutData(1) = LocalVar%iStatus

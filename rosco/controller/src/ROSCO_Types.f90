@@ -517,6 +517,7 @@ TYPE, PUBLIC :: DebugVariables
     REAL(DbKi)                    :: YawState                    ! State of yaw controller
     REAL(DbKi)                    :: VS_RefSpd                   ! Torque control generator speed set point [rad/s]
     REAL(DbKi)                    :: PC_RefSpd                   ! Generator speed set point of pitch controller [rad/s]
+    REAL(DbKi)                    :: TipDxc_TowerPassing_F       ! Estimate of the tip deflection at the tower passing [m]
 END TYPE DebugVariables
 
 TYPE, PUBLIC :: ErrorVariables
