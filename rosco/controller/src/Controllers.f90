@@ -628,9 +628,8 @@ CONTAINS
         CHARACTER(*), PARAMETER     :: RoutineName = 'IPCMBCTowerClearance'
 
         ! Body
-        ! Interpolate the optimal azimuth angle from the lookup table. We use the same wind speed here as is used to get the speed
-        ! reference.
-        LocalVar%TCIPC_AzimuthOffset = interp1d(CntrPar%TCIPC_GS_WindSpeeds, CntrPar%TCIPC_GS_AzimuthOffsets, LocalVar%PRC_WSE_F, ErrVar)
+        ! Interpolate the optimal azimuth angle from the lookup table using the filtered wind speed estimate.
+        LocalVar%TCIPC_AzimuthOffset = interp1d(CntrPar%TCIPC_GS_WindSpeeds, CntrPar%TCIPC_GS_AzimuthOffsets, LocalVar%We_Vw_F, ErrVar)
 
         ! Prepare tip deflection array.
         TipDxc(1) = LocalVar%TipDxc1
