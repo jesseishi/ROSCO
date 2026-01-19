@@ -508,7 +508,6 @@ class Controller():
             self.ps.min_pitch_saturation(self,turbine)
 
         # --- Power control ---
-        
         PRC_Table_n = self.controller_params['DISCON']['PRC_Table_n']
         pitch_range = np.linspace(self.min_pitch,self.max_pitch, num=100)  # radians
         

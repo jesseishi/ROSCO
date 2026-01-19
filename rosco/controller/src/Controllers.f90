@@ -139,6 +139,12 @@ CONTAINS
             ENDIF
         ENDIF
 
+        ! IPC open-loop setpoint. This is different from the normal OP_Mode in ROSCO because this open loop mode does not use an
+        ! input file but just uses control parameters which can be optimized for setpoint optimization.
+        IF (1 > 0) THEN
+            CALL SETPOINT_IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+        ENDIF
+
         ! Active wake control
         IF (CntrPar%AWC_Mode > 0) THEN
             CALL ActiveWakeControl(CntrPar, LocalVar, DebugVar, objInst)
@@ -173,13 +179,13 @@ CONTAINS
             ENDIF
         END DO
 
-        ! Hardware saturation: using CntrPar%PC_MinPit
-        DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
-            ! Saturate the pitch command using the overall (hardware) limit
-            LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
-            ! Saturate the overall command of blade K using the pitch rate limit
-            LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
-        END DO
+        ! ! Hardware saturation: using CntrPar%PC_MinPit
+        ! DO K = 1,LocalVar%NumBl ! Loop through all blades, add IPC contribution and limit pitch rate
+        !     ! Saturate the pitch command using the overall (hardware) limit
+        !     LocalVar%PitComAct(K) = saturate(LocalVar%PitComAct(K), CntrPar%PC_MinPit, CntrPar%PC_MaxPit)
+        !     ! Saturate the overall command of blade K using the pitch rate limit
+        !     LocalVar%PitComAct(K) = ratelimit(LocalVar%PitComAct(K), CntrPar%PC_MinRat, CntrPar%PC_MaxRat, LocalVar%DT, LocalVar%restart, LocalVar%rlP,objInst%instRL,LocalVar%BlPitch(K)) ! Saturate the overall command of blade K using the pitch rate limit
+        ! END DO
 
         ! Add pitch actuator fault for blade K
         IF (CntrPar%PF_Mode == 1) THEN
@@ -582,6 +588,49 @@ CONTAINS
         ENDIF
 
     END SUBROUTINE IPC
+!-------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE SETPOINT_IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        
+        TYPE(ControlParameters), INTENT(INOUT) :: CntrPar
+        TYPE(LocalVariables),    INTENT(INOUT) :: LocalVar
+        TYPE(ObjectInstances),   INTENT(INOUT) :: objInst
+        TYPE(DebugVariables),    INTENT(INOUT) :: DebugVar
+        TYPE(ErrorVariables),    INTENT(INOUT) :: ErrVar
+
+        ! Local variables
+        INTEGER(IntKi) :: k
+        REAL(DbKi)     :: PitCom_k(3)
+        
+        CHARACTER(*), PARAMETER :: RoutineName = 'SETPOINT_IPC'
+
+        ! TODO: Move to CntrPar
+        INTEGER(IntKi) :: SetpointIPC_NHarmonics = 2
+        REAL(DbKi)    :: SetpointIPC_Tilt_k(2)
+        REAL(DbKi)    :: SetpointIPC_Yaw_k(2)
+        SetpointIPC_Tilt_k(1) = 0.05
+        SetpointIPC_Yaw_k(1) = 0.0
+        SetpointIPC_Tilt_k(2) = 0.05
+        SetpointIPC_Yaw_k(2) = 0.0
+        
+        ! Body
+        LocalVar%PitCom = 0.0_DbKi
+        DO k = 1, SetpointIPC_NHarmonics
+
+            ! Calculate the k-th component of the open loop IPC setpoint and assign it to a temporary variable.
+            CALL ColemanTransformInverse(SetpointIPC_Tilt_k(k), SetpointIPC_Yaw_k(k), LocalVar%Azimuth, k, 0.0_DbKi, PitCom_k)
+
+            ! Add this harmonic to the output.
+            LocalVar%PitCom = LocalVar%PitCom + PitCom_k
+        END DO
+
+        ! Add RoutineName to error message
+        IF (ErrVar%aviFAIL < 0) THEN
+            ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
+        ENDIF
+
+    END SUBROUTINE SETPOINT_IPC
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE ForeAftDamping(CntrPar, LocalVar, objInst)
         ! Fore-aft damping controller, reducing the tower fore-aft vibrations using pitch
