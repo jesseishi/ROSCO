@@ -141,7 +141,7 @@ CONTAINS
 
         ! IPC open-loop setpoint. This is different from the normal OP_Mode in ROSCO because this open loop mode does not use an
         ! input file but just uses control parameters which can be optimized for setpoint optimization.
-        IF (1 > 0) THEN
+        IF (CntrPar%SetpointIPC_Mode > 0) THEN
             CALL SETPOINT_IPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ENDIF
 
@@ -604,22 +604,13 @@ CONTAINS
         REAL(DbKi)     :: PitCom_k(3)
         
         CHARACTER(*), PARAMETER :: RoutineName = 'SETPOINT_IPC'
-
-        ! TODO: Move to CntrPar
-        INTEGER(IntKi) :: SetpointIPC_NHarmonics = 2
-        REAL(DbKi)    :: SetpointIPC_Tilt_k(2)
-        REAL(DbKi)    :: SetpointIPC_Yaw_k(2)
-        SetpointIPC_Tilt_k(1) = 0.05
-        SetpointIPC_Yaw_k(1) = 0.0
-        SetpointIPC_Tilt_k(2) = 0.05
-        SetpointIPC_Yaw_k(2) = 0.0
         
         ! Body
         LocalVar%PitCom = 0.0_DbKi
-        DO k = 1, SetpointIPC_NHarmonics
+        DO k = 1, CntrPar%SetpointIPC_nHarmonics
 
             ! Calculate the k-th component of the open loop IPC setpoint and assign it to a temporary variable.
-            CALL ColemanTransformInverse(SetpointIPC_Tilt_k(k), SetpointIPC_Yaw_k(k), LocalVar%Azimuth, k, 0.0_DbKi, PitCom_k)
+            CALL ColemanTransformInverse(CntrPar%SetpointIPC_Tilt_k(k), CntrPar%SetpointIPC_Yaw_k(k), LocalVar%Azimuth, k, 0.0_DbKi, PitCom_k)
 
             ! Add this harmonic to the output.
             LocalVar%PitCom = LocalVar%PitCom + PitCom_k

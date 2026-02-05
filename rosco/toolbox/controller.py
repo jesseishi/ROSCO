@@ -53,6 +53,7 @@ class Controller():
         self.F_LPFType          = controller_params['F_LPFType']
         self.F_NotchType        = controller_params['F_NotchType']
         self.IPC_ControlMode    = controller_params['IPC_ControlMode']
+        self.SetpointIPC_Mode   = controller_params['SetpointIPC_Mode']
         self.VS_ControlMode     = controller_params['VS_ControlMode']
         self.VS_ConstPower      = controller_params['VS_ConstPower']
         self.VS_FBP             = controller_params['VS_FBP']
@@ -99,6 +100,9 @@ class Controller():
         self.Ki_ipc2p           = controller_params['IPC_Kp2p']
         self.IPC_Vramp          = controller_params['IPC_Vramp']
         self.ZMQ_UpdatePeriod   = controller_params['ZMQ_UpdatePeriod']
+        self.SetpointIPC_nHarmonics = controller_params['SetpointIPC_nHarmonics']
+        self.SetpointIPC_Tilt_k = controller_params['SetpointIPC_Tilt_k']
+        self.SetpointIPC_Yaw_k = controller_params['SetpointIPC_Yaw_k']
 
         # FBP config defaults to constant power, underspeed
         self.fbp_power_mode = controller_params['VS_FBP_power_mode']

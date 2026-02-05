@@ -381,6 +381,7 @@ CONTAINS
         !----------------- CONTROLLER FLAGS ---------------------
         CALL ParseInput(FileLines,'F_LPFType',       CntrPar%F_LPFType,         accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'IPC_ControlMode', CntrPar%IPC_ControlMode,   accINFILE(1), ErrVar, UnEc=UnEc)
+        CALL ParseInput(FileLines,'SetpointIPC_Mode',CntrPar%SetpointIPC_Mode,  accINFILE(1), ErrVar, UnEc=Unec)
         CALL ParseInput(FileLines,'VS_ControlMode',  CntrPar%VS_ControlMode,    accINFILE(1), ErrVar, UnEc=UnEc)
         CALL ParseInput(FileLines,'VS_ConstPower',   CntrPar%VS_ConstPower,     accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
         CALL ParseInput(FileLines,'VS_FBP',          CntrPar%VS_FBP,            accINFILE(1), ErrVar, .TRUE., UnEc=UnEc) ! Default is 0
@@ -459,6 +460,11 @@ CONTAINS
         CALL ParseInput(FileLines,  'IPC_CornerFreqAct',CntrPar%IPC_CornerFreqAct,      accINFILE(1),   ErrVar, CntrPar%IPC_ControlMode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
+        !------------------- Setpoint IPC CONSTANTS -----------------------
+        CALL ParseInput(FileLines,  'SetpointIPC_nHarmonics', CntrPar%SetpointIPC_nHarmonics,                              accINFILE(1), ErrVar, CntrPar%SetpointIPC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'SetpointIPC_Tilt_k',     CntrPar%SetpointIPC_Tilt_k, CntrPar%SetpointIPC_nHarmonics,  accINFILE(1), ErrVar, CntrPar%SetpointIPC_Mode == 0, UnEc)
+        CALL ParseAry(  FileLines,  'SetpointIPC_Yaw_k',      CntrPar%SetpointIPC_Yaw_k,  CntrPar%SetpointIPC_nHarmonics,  accINFILE(1), ErrVar, CntrPar%SetpointIPC_Mode == 0, UnEc)
+        
         !------------ VS TORQUE CONTROL CONSTANTS ----------------
         CALL ParseInput(FileLines,  'VS_GenEff',    CntrPar%VS_GenEff,                  accINFILE(1), ErrVar, .FALSE., UnEc)
         CALL ParseInput(FileLines,  'VS_ArSatTq',   CntrPar%VS_ArSatTq,                 accINFILE(1), ErrVar, CntrPar%VS_ControlMode .NE. 1, UnEc)

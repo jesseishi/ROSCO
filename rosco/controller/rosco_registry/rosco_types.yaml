@@ -217,6 +217,22 @@ ControlParameters:
     IPC_CornerFreqAct:
       <<: *real
       description: Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal {0 - Disable}, [rad/s]
+
+    # Setpoint IPC
+    SetpointIPC_Mode:
+      <<: *integer
+      description: Setpoint IPC Mode {0 - off, 1 - on}.
+    SetpointIPC_nHarmonics:
+      <<: *integer
+      description: Number of harmonics used by the setpoint IPC controller. Determines the length of SetpointIPC_Tilt/Yaw_k.
+    SetpointIPC_Tilt_k:
+      <<: *real
+      description: Setpoint IPC tilt amplitudes for different harmonics.
+      allocatable: True
+    SetpointIPC_Yaw_k:
+      <<: *real
+      description: Setpoint IPC yaw amplitudes for different harmonics.
+      allocatable: True
     
     # Collective Pitch Controller
     PC_ControlMode:

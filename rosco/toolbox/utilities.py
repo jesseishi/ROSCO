@@ -98,6 +98,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('!------- CONTROLLER FLAGS -------------------------------------------------\n')
     file.write('{0:<12d}        ! F_LPFType       - 1: first-order low-pass filter, 2: second-order low-pass filter, [rad/s] (currently filters generator speed and pitch control signals\n'.format(int(rosco_vt['F_LPFType'])))
     file.write('{0:<12d}        ! IPC_ControlMode - Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) (0: off, 1: 1P reductions, 2: 1P+2P reductions)\n'.format(int(rosco_vt['IPC_ControlMode'])))
+    file.write('{0:<12d}        ! SetpointIPC_Mode - Setpoint IPC Mode (0: off, 1: on)\n'.format(int(rosco_vt['SetpointIPC_Mode'])))
     file.write('{0:<12d}        ! VS_ControlMode  - Generator torque control mode in above rated conditions (0- no torque control, 1- k*omega^2 with PI transitions, 2- WSE TSR Tracking, 3- Power-based TSR Tracking, 4- Torque-based TSR Tracking)\n'.format(int(rosco_vt['VS_ControlMode'])))
     file.write('{0:<12d}        ! VS_ConstPower   - Do constant power torque control, where above rated torque varies, 0 for constant torque)\n'.format(int(rosco_vt['VS_ConstPower'])))
     file.write('{0:<12d}        ! VS_FBP          - Fixed blade pitch configuration mode (0- variable pitch (disabled), 1- constant power overspeed, 2- WSE-lookup reference tracking, 3- torque-lookup reference tracking)\n'.format(int(rosco_vt['VS_FBP'])))
@@ -166,6 +167,11 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{}! IPC_KI			- Integral gain for the individual pitch controller: first parameter for 1P reductions, second for 2P reductions, [-]\n'.format(write_array(rosco_vt['IPC_KI'],'<12.3e')))
     file.write('{}! IPC_aziOffset		- Phase offset added to the azimuth angle for the individual pitch controller, [rad]. \n'.format(write_array(rosco_vt['IPC_aziOffset'],'<12.3f')))
     file.write('{:<13.1f}       ! IPC_CornerFreqAct - Corner frequency of the first-order actuators model, to induce a phase lag in the IPC signal (0: Disable), [rad/s]\n'.format(rosco_vt['IPC_CornerFreqAct']))
+    file.write('\n')
+    file.write('!------- SETPOINT IPC -----------------------------------------\n')
+    file.write('{:<11d}         ! SetpointIPC_nHarmonics - Number of harmonics used by the setpoint IPC controller. Determines the length of SetpointIPC_Tilt/Yaw_k\n'.format(int(rosco_vt['SetpointIPC_nHarmonics'])))
+    file.write('{}              ! SetpointIPC_Tilt_k - Setpoint IPC tilt amplitudes for different harmonics..\n'.format(write_array(rosco_vt['SetpointIPC_Tilt_k'],'<12.3f')))            
+    file.write('{}              ! SetpointIPC_Yaw_k  - Setpoint IPC yaw amplitudes for different harmonics..\n'.format(write_array(rosco_vt['SetpointIPC_Yaw_k'],'<12.3e')))
     file.write('\n')
     file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')
     file.write('{:<14.5f}      ! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [%]\n'.format(rosco_vt['VS_GenEff']))
@@ -520,6 +526,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['F_LPFType']	    = int(controller.F_LPFType)
     DISCON_dict['F_NotchType']		= int(controller.F_NotchType)
     DISCON_dict['IPC_ControlMode']	= int(controller.IPC_ControlMode)
+    DISCON_dict['SetpointIPC_Mode']	= int(controller.SetpointIPC_Mode)
     DISCON_dict['VS_ControlMode']	= int(controller.VS_ControlMode)
     DISCON_dict['VS_ConstPower']	= int(controller.VS_ConstPower)
     DISCON_dict['VS_FBP']           = int(controller.VS_FBP)
@@ -589,6 +596,11 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['IPC_KI']           = [controller.Ki_ipc1p, controller.Ki_ipc2p]
     DISCON_dict['IPC_aziOffset']	= [0.0, 0.0]
     DISCON_dict['IPC_CornerFreqAct'] = 0.0
+    # ------- INDIVIDUAL PITCH CONTROL -------
+    DISCON_dict['SetpointIPC_nHarmonics'] = controller.SetpointIPC_nHarmonics
+    DISCON_dict['SetpointIPC_Tilt_k'] = controller.SetpointIPC_Tilt_k
+    DISCON_dict['SetpointIPC_Yaw_k'] = controller.SetpointIPC_Yaw_k
+
     # ------- VS TORQUE CONTROL -------
     DISCON_dict['VS_GenEff']		= turbine.GenEff
     DISCON_dict['VS_ArSatTq']		= turbine.rated_torque
