@@ -625,7 +625,7 @@ CONTAINS
         REAL(DbKi), PARAMETER       :: betaDen = 0.1_DbKi
         REAL(DbKi), PARAMETER       :: MaxIPCAmplitude = 5.0_DbKi * D2R
 
-        CHARACTER(*), PARAMETER     :: RoutineName = 'IPCMBCTowerClearance'
+        CHARACTER(*), PARAMETER     :: RoutineName = 'TowerClearanceIPC'
 
         ! Body
         ! Interpolate the optimal azimuth angle from the lookup table using the filtered wind speed estimate.
@@ -669,7 +669,7 @@ CONTAINS
         ! Now calculate the tip deflection error which we will use as a rotor tilting error (by flipping the sign).
         TipDxcTiltError_1P_F = -(CntrPar%TCIPC_MaxTipDeflection - TipDxc_TowerPassing_F)
 
-        ! Control the error. The controller is saturated on [0, MaxIPCAmplitude) so that it never decreases the tower clearance
+        ! Control the error. The controller is saturated so that it never decreases the tower clearance
         ! towards the reference and doesn't produce too high IPC action.
         LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
