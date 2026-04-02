@@ -101,6 +101,7 @@ class Controller():
         self.TCIPC_MaxTipDeflection = controller_params['TCIPC_MaxTipDeflection']
         self.TCIPC_nHarmonics   = np.round(controller_params['TCIPC_nHarmonics'])
         self.TCIPC_ZeroYawDeflection = np.round(controller_params['TCIPC_ZeroYawDeflection'])
+        self.TCIPC_MaxPitchAmplitude = controller_params['TCIPC_MaxPitchAmplitude']
         # These two variables should be integers, so let's check that.
         if not np.isclose(self.TCIPC_nHarmonics, int(controller_params['TCIPC_nHarmonics'])):
             raise ValueError(f"TCIPC_nHarmonics must have an integer value, but got {controller_params['TCIPC_nHarmonics']}.")

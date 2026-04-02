@@ -173,6 +173,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! TCIPC_GS_n              - Amount of gain-scheduling table entries\n'.format(int(rosco_vt['TCIPC_GS_n'])))
     file.write('{}              ! TCIPC_GS_WindSpeeds     - Wind speeds for gain-scheduling table, [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_WindSpeeds'][i]) for i in range(len(rosco_vt['TCIPC_GS_WindSpeeds'])))))
     file.write('{}              ! TCIPC_GS_AzimuthOffsets - Azimuth offsets for gain-scheduling table, [rad]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_AzimuthOffsets'][i]) for i in range(len(rosco_vt['TCIPC_GS_AzimuthOffsets'])))))
+    file.write('{:<13.1f}       ! TCIPC_MaxPitchAmplitude  - Maximum amplitude of the TCIPC pitch command for the tilt and yaw channel separately, [rad]\n'.format(rosco_vt['TCIPC_MaxPitchAmplitude']))
     file.write('\n')
     file.write('!------- VS TORQUE CONTROL ------------------------------------------------\n')
     file.write('{:<014.5f}      ! VS_GenEff			- Generator efficiency mechanical power -> electrical power, [should match the efficiency defined in the generator properties!], [%]\n'.format(rosco_vt['VS_GenEff']))
@@ -597,6 +598,7 @@ def DISCON_dict(turbine, controller, txt_filename=None):
     DISCON_dict['TCIPC_MaxTipDeflection'] = controller.TCIPC_MaxTipDeflection
     DISCON_dict['TCIPC_nHarmonics'] = controller.TCIPC_nHarmonics
     DISCON_dict['TCIPC_ZeroYawDeflection'] = controller.TCIPC_ZeroYawDeflection
+    DISCON_dict['TCIPC_MaxPitchAmplitude'] = controller.TCIPC_MaxPitchAmplitude
     # ------- VS TORQUE CONTROL -------
     DISCON_dict['VS_GenEff']		= turbine.GenEff
     DISCON_dict['VS_ArSatTq']		= turbine.rated_torque

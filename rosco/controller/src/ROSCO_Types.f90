@@ -58,6 +58,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: TCIPC_GS_n                  ! Amount of gain-scheduling table entries.
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_WindSpeeds         ! Gain-schedule table - wind speeds [m/s].
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_AzimuthOffsets     ! Gain-schedule table - azimuth offsets [rad].
+    REAL(DbKi)                    :: TCIPC_MaxPitchAmplitude     ! Maximum amplitude of the TCIPC pitch command for the tilt and yaw channel separately [rad]
     INTEGER(IntKi)                :: PC_ControlMode              ! Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}
     INTEGER(IntKi)                :: PC_GS_n                     ! Amount of gain-scheduling table entries
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: PC_GS_angles                ! Gain-schedule table - pitch angles

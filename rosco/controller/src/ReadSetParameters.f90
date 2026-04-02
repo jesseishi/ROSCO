@@ -465,6 +465,7 @@ CONTAINS
         CALL ParseInput(FileLines,  'TCIPC_GS_n',              CntrPar%TCIPC_GS_n,              accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'TCIPC_GS_WindSpeeds',     CntrPar%TCIPC_GS_WindSpeeds,     CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         CALL ParseAry(  FileLines,  'TCIPC_GS_AzimuthOffsets', CntrPar%TCIPC_GS_AzimuthOffsets, CntrPar%TCIPC_GS_n, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
+        CALL ParseInput(FileLines,  'TCIPC_MaxPitchAmplitude', CntrPar%TCIPC_MaxPitchAmplitude, accINFILE(1), ErrVar, CntrPar%TCIPC_ControlMode == 0, UnEc)
         IF (ErrVar%aviFAIL < 0) RETURN
 
 

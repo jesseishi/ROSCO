@@ -623,7 +623,6 @@ CONTAINS
         REAL(DbKi), PARAMETER       :: Ki = -0.0028_DbKi
         REAL(DbKi), PARAMETER       :: betaNum = 0.001_DbKi
         REAL(DbKi), PARAMETER       :: betaDen = 0.1_DbKi
-        REAL(DbKi), PARAMETER       :: MaxIPCAmplitude = 5.0_DbKi * D2R
 
         CHARACTER(*), PARAMETER     :: RoutineName = 'TowerClearanceIPC'
 
@@ -671,7 +670,7 @@ CONTAINS
 
         ! Control the error. The controller is saturated so that it never decreases the tower clearance
         ! towards the reference and doesn't produce too high IPC action.
-        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, -MaxIPCAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+        LocalVar%IPCTip_AxisTilt_1P = PIController(TipDxcTiltError_1P_F, Kp, Ki, -CntrPar%TCIPC_MaxPitchAmplitude, 0.0_DbKi, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
 
         ! The main part of the controller is now done. However, we have an additional option, which is to drive the yaw deflection
         ! to zero. This has no effect on the blade deflection at the tower passing but reduces the blade DEL at the expense of
@@ -684,7 +683,7 @@ CONTAINS
             
             ! Control the error with symmetric saturation because we always drive it to zero (amplification not possible in this
             ! case).
-            LocalVar%IPCTip_AxisYaw_1P = PIController(TipDxcYawError_1P_F, Kp, Ki, -MaxIPCAmplitude, MaxIPCAmplitude, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
+            LocalVar%IPCTip_AxisYaw_1P = PIController(TipDxcYawError_1P_F, Kp, Ki, -CntrPar%TCIPC_MaxPitchAmplitude, CntrPar%TCIPC_MaxPitchAmplitude, LocalVar%DT, 0.0_DbKi, LocalVar%piP, LocalVar%restart, objInst%instPI)
         ELSE
             LocalVar%IPCTip_AxisYaw_1P = 0.0_DbKi
         END IF

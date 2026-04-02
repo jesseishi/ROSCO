@@ -242,6 +242,9 @@ ControlParameters:
       <<: *real
       description: Gain-schedule table - azimuth offsets [rad].
       allocatable: True
+    TCIPC_MaxPitchAmplitude:
+      <<: *real
+      description: Maximum amplitude of the TCIPC pitch command for the tilt and yaw channel separately [rad]
 
     # Collective Pitch Controller
     PC_ControlMode:
