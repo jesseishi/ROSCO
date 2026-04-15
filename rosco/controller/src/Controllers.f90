@@ -606,6 +606,7 @@ CONTAINS
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar
 
         ! Local variables
+        REAL(DbKi)                  :: Ki
         REAL(DbKi)                  :: TipDxc(3)
         REAL(DbKi)                  :: TipDxcCol_0P
         REAL(DbKi)                  :: omega
@@ -620,7 +621,6 @@ CONTAINS
 
         ! Parameters.
         REAL(DbKi), PARAMETER       :: Kp = 0.0_DbKi
-        REAL(DbKi), PARAMETER       :: Ki = -0.0028_DbKi
         REAL(DbKi), PARAMETER       :: betaNum = 0.001_DbKi
         REAL(DbKi), PARAMETER       :: betaDen = 0.1_DbKi
 
@@ -629,6 +629,7 @@ CONTAINS
         ! Body
         ! Interpolate the optimal azimuth angle from the lookup table using the filtered wind speed estimate.
         LocalVar%TCIPC_AzimuthOffset = interp1d(CntrPar%TCIPC_GS_WindSpeeds, CntrPar%TCIPC_GS_AzimuthOffsets, LocalVar%We_Vw_F, ErrVar)
+        Ki = interp1d(CntrPar%TCIPC_GS_WindSpeeds, CntrPar%TCIPC_GS_IntegratorGains, LocalVar%We_Vw_F, ErrVar)
 
         ! Prepare tip deflection array.
         TipDxc(1) = LocalVar%TipDxc1

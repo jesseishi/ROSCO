@@ -238,6 +238,10 @@ ControlParameters:
       <<: *real
       description: Gain-schedule table - wind speeds [m/s].
       allocatable: True
+    TCIPC_GS_IntegratorGains:
+      <<: *real
+      description: Gain-schedule table - integrator gains.
+      allocatable: True
     TCIPC_GS_AzimuthOffsets:
       <<: *real
       description: Gain-schedule table - azimuth offsets [rad].

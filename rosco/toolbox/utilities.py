@@ -172,6 +172,7 @@ def write_DISCON(turbine, controller, param_file='DISCON.IN', txt_filename='Cp_C
     file.write('{:<11d}         ! TCIPC_ZeroYawDeflection         - Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {{0 - disabled, 1 - enabled}}.\n'.format(int(rosco_vt['TCIPC_ZeroYawDeflection'])))
     file.write('{:<11d}         ! TCIPC_GS_n              - Amount of gain-scheduling table entries\n'.format(int(rosco_vt['TCIPC_GS_n'])))
     file.write('{}              ! TCIPC_GS_WindSpeeds     - Wind speeds for gain-scheduling table, [m/s]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_WindSpeeds'][i]) for i in range(len(rosco_vt['TCIPC_GS_WindSpeeds'])))))
+    file.write('{}              ! TCIPC_GS_IntegratorGains - Integrator gains for gain-scheduling table\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_IntegratorGains'][i]) for i in range(len(rosco_vt['TCIPC_GS_IntegratorGains'])))))
     file.write('{}              ! TCIPC_GS_AzimuthOffsets - Azimuth offsets for gain-scheduling table, [rad]\n'.format(''.join('{:<4.6f}  '.format(rosco_vt['TCIPC_GS_AzimuthOffsets'][i]) for i in range(len(rosco_vt['TCIPC_GS_AzimuthOffsets'])))))
     file.write('{:<13.1f}       ! TCIPC_MaxPitchAmplitude  - Maximum amplitude of the TCIPC pitch command for the tilt and yaw channel separately, [rad]\n'.format(rosco_vt['TCIPC_MaxPitchAmplitude']))
     file.write('\n')

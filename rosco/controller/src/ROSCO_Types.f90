@@ -57,6 +57,7 @@ TYPE, PUBLIC :: ControlParameters
     INTEGER(IntKi)                :: TCIPC_ZeroYawDeflection     ! Set the reference for the yaw deflection to zero, this reduces the blade DEL but increases the ADC {0 - disabled, 1 - enabled}.
     INTEGER(IntKi)                :: TCIPC_GS_n                  ! Amount of gain-scheduling table entries.
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_WindSpeeds         ! Gain-schedule table - wind speeds [m/s].
+    REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_IntegratorGains    ! Gain-schedule table - integrator gains.
     REAL(DbKi), DIMENSION(:), ALLOCATABLE     :: TCIPC_GS_AzimuthOffsets     ! Gain-schedule table - azimuth offsets [rad].
     REAL(DbKi)                    :: TCIPC_MaxPitchAmplitude     ! Maximum amplitude of the TCIPC pitch command for the tilt and yaw channel separately [rad]
     INTEGER(IntKi)                :: PC_ControlMode              ! Blade pitch control mode {0 - No pitch, fix to fine pitch, 1 - active PI blade pitch control}

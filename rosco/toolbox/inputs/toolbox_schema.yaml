@@ -868,6 +868,12 @@ properties:
                             type: number
                         description: Gain-schedule table - wind speeds [m/s]
                         unit: m/s
+                    TCIPC_GS_IntegratorGains:
+                        type: array
+                        items:
+                            type: number
+                        description: Gain-schedule table - integrator gains
+                        unit: rad  
                     TCIPC_GS_AzimuthOffsets:
                         type: array
                         items:
