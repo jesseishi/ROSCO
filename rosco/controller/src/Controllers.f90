@@ -76,7 +76,7 @@ CONTAINS
         ! END IF
         ! Find tower clearance IPC contribution. 
         ! For now, this is _instead_ of IPC, but in the future they could be integrated together.
-        IF (CntrPar%TCIPC_ControlMode > 0) THEN
+        IF ((CntrPar%TCIPC_ControlMode > 0) .AND. (LocalVar%GenSpeedF > 0)) THEN
             CALL TowerClearanceIPC(CntrPar, LocalVar, objInst, DebugVar, ErrVar)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
