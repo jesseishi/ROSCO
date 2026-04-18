@@ -659,7 +659,8 @@ CONTAINS
         ! also using higher harmonics, multiple notch filters are required.
         TipDxc_TowerPassing_F = TipDxc_TowerPassing
         DO n=3, 9, 3
-            omega = n * LocalVar%RotSpeedF
+            ! Take the absolute value of the rotor speed to avoid amplification when the rotor speed is negative at low wind speeds.
+            omega = n * abs(LocalVar%RotSpeedF)
             TipDxc_TowerPassing_F = NotchFilter(TipDxc_TowerPassing_F, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
         END DO
 
@@ -680,6 +681,7 @@ CONTAINS
 
             ! Define, and then filter the error.
             TipDxcYawError_1P = 0.0_DbKi - TipDxcYaw_nP(1)
+            omega = abs(LocalVar%RotSpeedF)
             TipDxcYawError_1P_F = NotchFilter(TipDxcYawError_1P, LocalVar%DT, omega, betaNum, betaDen, LocalVar%FP, LocalVar%iStatus, LocalVar%restart, objInst%instNotch)
             
             ! Control the error with symmetric saturation because we always drive it to zero (amplification not possible in this
